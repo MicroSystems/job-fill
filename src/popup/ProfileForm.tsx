@@ -1,52 +1,35 @@
 import React from "react";
 import type { Profile } from "../types";
-import { getProfile, saveProfile, getResume, storeResume, deleteResume } from "../storage";
+import { getProfile, saveProfile, getResume, storeResume, deleteResume, getCurrentProfileName } from "../storage";
 
-function demoProfile(): Profile {
-  return {
-    name: { given: "John", family: "Doe", middle: "" },
-    email: "john.doe@example.com",
-    phone: { national: "555-123-4567", countryCode: "1" },
-    address: { line1: "123 Main St", line2: "", city: "San Francisco", state: "CA", zip: "94105", country: "United States" },
-    social: { linkedin: "https://linkedin.com/in/johndoe", portfolio: "", github: "https://github.com/johndoe" },
-    experience: [{ company: "Acme Corp", title: "Software Engineer", start: "2020-01", end: "", current: true, description: "" }],
-    education: [{ school: "State University", degree: "Bachelor's", field: "Computer Science", graduation: "2019-06", gpa: "" }],
-    skills: ["JavaScript", "TypeScript", "React", "Python"],
-    resume: null,
-    coverLetter: "I am excited to apply for this position and believe my skills are a great match.",
-    answers: {},
-    desiredCompensation: "",
-    workAuthorization: "",
-    gender: "",
-    race: "",
-    veteranStatus: "",
-    disabilityStatus: "",
-  };
-}
-
-export function ProfileForm() {
-  const [profile, setProfile] = React.useState<Profile>(demoProfile);
+export function ProfileForm({ profileName: initialName }: { profileName?: string }) {
+  const [profile, setProfile] = React.useState<Profile | null>(null);
+  const [profileName, setProfileName] = React.useState(initialName ?? "");
   const [saved, setSaved] = React.useState(false);
   const [resumeFilename, setResumeFilename] = React.useState("");
   const [skillsText, setSkillsText] = React.useState("");
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    getProfile().then((p) => {
+    (async () => {
+      const name = initialName || (await getCurrentProfileName());
+      setProfileName(name);
+      const p = await getProfile(name);
       if (p) {
         setProfile(p);
         setSkillsText(Array.isArray(p.skills) ? p.skills.join(", ") : "");
-      } else {
-        saveProfile(demoProfile());
-        setSkillsText("JavaScript, TypeScript, React, Python");
       }
-    });
-    getResume().then((r) => {
+      const r = await getResume(name);
       if (r) setResumeFilename(r.filename);
-    });
-  }, []);
+      setLoading(false);
+    })();
+  }, [initialName]);
+
+  if (loading || !profile) return <div style={{ padding: 20, color: "var(--text-secondary)" }}>Loading...</div>;
 
   const update = (path: string, value: any) => {
     setProfile((prev) => {
+      if (!prev) return prev;
       const next = JSON.parse(JSON.stringify(prev));
       const parts = path.split(".");
       let obj: any = next;
@@ -60,8 +43,9 @@ export function ProfileForm() {
   };
 
   const handleSave = async () => {
+    if (!profile) return;
     const p = { ...profile, skills: skillsText.split(",").map((s) => s.trim()).filter(Boolean) };
-    await saveProfile(p);
+    await saveProfile(p, profileName);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -72,29 +56,35 @@ export function ProfileForm() {
     const reader = new FileReader();
     reader.onload = async () => {
       const data = (reader.result as string).split(",")[1];
-      await storeResume(file.name, data);
+      await storeResume(file.name, data, profileName);
       setResumeFilename(file.name);
     };
     reader.readAsDataURL(file);
   };
 
   const handleRemoveResume = async () => {
-    await deleteResume();
+    await deleteResume(profileName);
     setResumeFilename("");
   };
 
   const addExperience = () => {
-    setProfile((prev) => ({
-      ...prev,
-      experience: [...prev.experience, { company: "", title: "", start: "", end: "", current: false, description: "" }],
-    }));
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        experience: [...prev.experience, { company: "", title: "", start: "", end: "", current: false, description: "" }],
+      };
+    });
   };
 
   const addEducation = () => {
-    setProfile((prev) => ({
-      ...prev,
-      education: [...prev.education, { school: "", degree: "", field: "", graduation: "", gpa: "" }],
-    }));
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        education: [...prev.education, { school: "", degree: "", field: "", graduation: "", gpa: "" }],
+      };
+    });
   };
 
   return (
@@ -325,7 +315,7 @@ export function ProfileForm() {
           Used for EEO questions on job applications.
         </p>
         <div className="field-row">
-          <label>
+          <label className="wide">
             Gender
             <select value={profile.gender ?? ""} onChange={(e) => update("gender", e.target.value)}>
               <option value="">--</option>
@@ -335,7 +325,9 @@ export function ProfileForm() {
               <option value="Choose not to Answer">Choose not to Answer</option>
             </select>
           </label>
-          <label>
+        </div>
+        <div className="field-row" style={{ marginTop: 6 }}>
+          <label className="wide">
             Race / Ethnicity
             <select value={profile.race ?? ""} onChange={(e) => update("race", e.target.value)}>
               <option value="">--</option>
@@ -349,8 +341,8 @@ export function ProfileForm() {
             </select>
           </label>
         </div>
-        <div className="field-row">
-          <label>
+        <div className="field-row" style={{ marginTop: 6 }}>
+          <label className="wide">
             Veteran Status
             <select value={profile.veteranStatus ?? ""} onChange={(e) => update("veteranStatus", e.target.value)}>
               <option value="">--</option>
@@ -359,7 +351,9 @@ export function ProfileForm() {
               <option value="Choose not to Answer">Choose not to Answer</option>
             </select>
           </label>
-          <label>
+        </div>
+        <div className="field-row" style={{ marginTop: 6 }}>
+          <label className="wide">
             Disability Status
             <select value={profile.disabilityStatus ?? ""} onChange={(e) => update("disabilityStatus", e.target.value)}>
               <option value="">--</option>

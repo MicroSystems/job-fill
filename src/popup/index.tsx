@@ -11,18 +11,65 @@ function getInitialTheme(): Theme {
 function App() {
   const [tab, setTab] = React.useState<"action" | "history">("action");
   const [theme, setTheme] = React.useState<Theme>(getInitialTheme);
+  const [profileNames, setProfileNames] = React.useState<string[]>([]);
+  const [currentProfile, setCurrentProfile] = React.useState("");
+  const [platform, setPlatform] = React.useState<string>("");
 
   React.useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("jf-theme", theme);
   }, [theme]);
 
+  const loadProfiles = async () => {
+    const resp = await browser.runtime.sendMessage({ type: "get-profile-names" });
+    if (resp) {
+      setProfileNames(resp.names ?? []);
+      setCurrentProfile(resp.current ?? "");
+    }
+  };
+
+  React.useEffect(() => { loadProfiles(); }, []);
+
+  React.useEffect(() => {
+    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+      const tab = tabs[0];
+      if (tab.id) {
+        browser.tabs.sendMessage(tab.id, { type: "get-platform" }).then((res: any) => {
+          if (res?.platform) setPlatform(res.platform);
+        }).catch(() => {});
+      }
+    });
+  }, []);
+
   const toggleTheme = () => setTheme((t) => (t === "light" ? "dark" : "light"));
+
+  const handleProfileChange = async (name: string) => {
+    await browser.runtime.sendMessage({ type: "set-current-profile", name });
+    setCurrentProfile(name);
+  };
+
+  const handleAddProfile = async () => {
+    const name = prompt("Enter profile name:");
+    if (!name || !name.trim()) return;
+    await browser.runtime.sendMessage({ type: "create-profile", name: name.trim() });
+    await loadProfiles();
+  };
+
+  const handleDeleteProfile = async () => {
+    if (profileNames.length <= 1) {
+      alert("Cannot delete the last profile.");
+      return;
+    }
+    if (!confirm(`Delete profile "${currentProfile}"?`)) return;
+    await browser.runtime.sendMessage({ type: "delete-profile", name: currentProfile });
+    await loadProfiles();
+  };
 
   return (
     <div className="popup">
       <header className="popup-header">
         <div className="header-row">
+          <span></span>
           <h1>Job Fill</h1>
           <div className="header-actions">
             <button className="icon-btn" onClick={toggleTheme} title="Toggle theme">
@@ -56,6 +103,36 @@ function App() {
             </button>
           </div>
         </div>
+
+        <div className="detected-row">
+          Detected: <strong>{platform || "scanning..."}</strong>
+        </div>
+
+        <div className="profile-selector-row">
+          <label className="profile-label">Profile:</label>
+          <select
+            className="profile-select"
+            value={currentProfile}
+            onChange={(e) => handleProfileChange(e.target.value)}
+          >
+            {profileNames.map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+          <button className="icon-btn" title="Add Profile" onClick={handleAddProfile}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+          <button className="icon-btn" title="Delete Profile" onClick={handleDeleteProfile}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
+        </div>
+
         <nav className="tab-bar">
           <button
             className={`tab ${tab === "action" ? "active" : ""}`}
@@ -81,25 +158,8 @@ function App() {
 }
 
 function ActionPanel() {
-  const [platform, setPlatform] = React.useState<string>("");
   const [status, setStatus] = React.useState<string>("");
   const [result, setResult] = React.useState<string>("");
-
-  const queryActiveTab = (msg: any) =>
-    browser.tabs
-      .query({ active: true, currentWindow: true })
-      .then((tabs) => {
-        const tab = tabs[0];
-        if (tab.id) return browser.tabs.sendMessage(tab.id, msg);
-      });
-
-  React.useEffect(() => {
-    queryActiveTab({ type: "get-platform" })
-      .then((res: any) => {
-        if (res?.platform) setPlatform(res.platform);
-      })
-      .catch(() => setPlatform("unknown"));
-  }, []);
 
   React.useEffect(() => {
     const handler = (msg: any) => {
@@ -146,10 +206,6 @@ function ActionPanel() {
 
   return (
     <div className="action-panel">
-      <div className="platform-badge">
-        Detected: <strong>{platform || "scanning..."}</strong>
-      </div>
-
       <button className="btn btn-secondary" onClick={() => handleAction("autofill")}>
         Auto-Fill This Page
       </button>

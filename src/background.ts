@@ -1,4 +1,8 @@
-import { getProfile, getConfig, saveConfig, defaultConfig, getAppliedJobs, clearAppliedJobs } from "./storage";
+import {
+  getProfile, getProfileNames, getCurrentProfileName, setCurrentProfileName,
+  saveProfile, createProfile, deleteProfile,
+  getConfig, saveConfig, defaultConfig, getAppliedJobs, clearAppliedJobs,
+} from "./storage";
 
 browser.runtime.onInstalled.addListener(async () => {
   const config = await getConfig();
@@ -11,6 +15,24 @@ browser.runtime.onMessage.addListener(async (msg: any, _sender) => {
   if (msg.type === "get-profile") {
     const profile = await getProfile();
     return { profile };
+  }
+  if (msg.type === "get-profile-names") {
+    const names = await getProfileNames();
+    const current = await getCurrentProfileName();
+    return { names, current };
+  }
+  if (msg.type === "set-current-profile") {
+    await setCurrentProfileName(msg.name);
+    return { success: true };
+  }
+  if (msg.type === "create-profile") {
+    await createProfile(msg.name);
+    await setCurrentProfileName(msg.name);
+    return { success: true };
+  }
+  if (msg.type === "delete-profile") {
+    await deleteProfile(msg.name);
+    return { success: true };
   }
   if (msg.type === "get-config") {
     const config = await getConfig();
@@ -29,7 +51,10 @@ browser.runtime.onMessage.addListener(async (msg: any, _sender) => {
     return { success: true };
   }
   if (msg.type === "open-profile") {
-    await browser.tabs.create({ url: browser.runtime.getURL("profile.html") });
+    const current = await getCurrentProfileName();
+    await browser.tabs.create({
+      url: browser.runtime.getURL(`profile.html?name=${encodeURIComponent(current)}`),
+    });
   }
   if (msg.type === "open-resume-upload") {
     await browser.windows.create({

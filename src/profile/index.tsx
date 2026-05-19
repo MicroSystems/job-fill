@@ -10,6 +10,9 @@ function getInitialTheme(): Theme {
   return (localStorage.getItem("jf-theme") as Theme) || "light";
 }
 
+const params = new URLSearchParams(window.location.search);
+const profileName = params.get("name") ?? undefined;
+
 function ProfilePage() {
   const [theme, setTheme] = React.useState<Theme>(getInitialTheme);
 
@@ -23,7 +26,7 @@ function ProfilePage() {
   return (
     <div className="profile-page">
       <header>
-        <h1>My Profile</h1>
+        <h1>{profileName ? `Profile: ${profileName}` : "My Profile"}</h1>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="icon-btn" onClick={toggleTheme} title="Toggle theme">
             {theme === "light" ? (
@@ -46,7 +49,7 @@ function ProfilePage() {
           </button>
         </div>
       </header>
-      <ProfileForm />
+      <ProfileForm profileName={profileName} />
     </div>
   );
 }

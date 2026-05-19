@@ -1,11 +1,18 @@
 import type { FillResponse } from "../../types";
 import type { FillDriver } from "../driver";
 import {
+  fillAllFields,
   setNativeValue,
   setCheckbox,
   uploadFile,
   isVisible,
+  resolveProfileValue,
+  selectOption,
 } from "../filler";
+
+function qs<T extends HTMLElement = HTMLElement>(sel: string): T | null {
+  return document.querySelector<T>(sel);
+}
 
 function getVal(obj: any, path: string): string | undefined {
   const parts = path.split(".");
@@ -21,10 +28,6 @@ function getVal(obj: any, path: string): string | undefined {
   return v != null ? String(v) : undefined;
 }
 
-function qs<T extends HTMLElement = HTMLElement>(sel: string): T | null {
-  return document.querySelector<T>(sel);
-}
-
 export const leverDriver: FillDriver = {
   submitSelector:
     '[data-qa*="submit"], [data-qa*="Submit"], button[type="submit"]',
@@ -37,6 +40,23 @@ export const leverDriver: FillDriver = {
   ): Promise<FillResponse> {
     const result: FillResponse = { filled: 0, skipped: 0, errors: [] };
     const p = profileRaw ?? profile;
+
+    // ── Baseline fill using shared FIELD_MAPPINGS ──────────────────────────
+    // Skip keys that Lever handles via its own selectors (data-qa, name attrs)
+    const leverKeys = new Set([
+      "name.given", "name.family", "name.full",
+      "email", "phone.national",
+      "social.linkedin", "social.github", "social.portfolio", "social.twitter",
+      "coverLetter", "resume",
+      "desiredCompensation", "workAuthorization",
+      "gender", "race", "veteranStatus", "disabilityStatus",
+    ]);
+    const baseline = fillAllFields(p, document, leverKeys);
+    result.filled += baseline.filled;
+    result.skipped += baseline.skipped;
+    result.errors.push(...baseline.errors);
+
+    // ── Lever-specific field fills (data-qa / name selectors) ──────────────
 
     // name
     const given = getVal(p, "name.given");
@@ -91,7 +111,7 @@ export const leverDriver: FillDriver = {
       }
     }
 
-    // location (city)
+    // location (city + state)
     const city = getVal(p, "address.city");
     const state = getVal(p, "address.state");
     if (city) {
@@ -165,7 +185,7 @@ export const leverDriver: FillDriver = {
       result.filled++;
     }
 
-    // ------ custom question cards (text + checkbox/radio) ------
+    // ── Custom question cards (text + checkbox/radio) ──────────────────────
 
     function getQuestionText(el: HTMLElement): string {
       const q = el.closest(".application-question");
@@ -187,42 +207,12 @@ export const leverDriver: FillDriver = {
       return "";
     }
 
-    // text cards
-    const textCards = document.querySelectorAll<HTMLInputElement>(
-      'input.card-field-input[type="text"]:not([disabled]), input[type="text"][name^="cards["]:not([disabled])',
-    );
-    for (const inp of textCards) {
-      if (inp.value) continue;
-      const qText = getQuestionText(inp).toLowerCase();
-      const answers = p.answers ?? {};
-      let val = answers[inp.name];
-      // match by question text against answers keys
-      if (!val) {
-        for (const [k, v] of Object.entries(answers)) {
-          if (qText.includes(k.toLowerCase()) || k.toLowerCase().includes(qText)) {
-            val = v as string;
-            break;
-          }
-        }
-      }
-      // compensation expectations — use profile.desiredCompensation
-      if (!val && /compensation|salary|expect/i.test(qText)) {
-        val = getVal(p, "desiredCompensation");
-      }
-      if (val) {
-        setNativeValue(inp, val as string);
-        result.filled++;
-      }
-    }
-
     // detect question text from an input — tries DOM first, then falls back to
     // grouping sibling options so we can identify EEO surveys by their values
     function qTextWithFallback(inp: HTMLInputElement): string {
       const fromDom = getQuestionText(inp);
       if (fromDom) return fromDom;
 
-      // DOM text extraction failed — try grouping options in the same container
-      // and matching against known EEO value sets
       const container =
         inp.closest(".application-question") ??
         inp.closest("[data-name*=surveysResponses]") ??
@@ -244,7 +234,35 @@ export const leverDriver: FillDriver = {
       return "";
     }
 
+    // text cards
+    const textCards = document.querySelectorAll<HTMLInputElement>(
+      'input.card-field-input[type="text"]:not([disabled]), input[type="text"][name^="cards["]:not([disabled])',
+    );
+    for (const inp of textCards) {
+      if (inp.value) continue;
+      const qText = getQuestionText(inp).toLowerCase();
+      const answers = p.answers ?? {};
+      let val = answers[inp.name];
+      if (!val) {
+        for (const [k, v] of Object.entries(answers)) {
+          if (qText.includes(k.toLowerCase()) || k.toLowerCase().includes(qText)) {
+            val = v as string;
+            break;
+          }
+        }
+      }
+      // compensation expectations — use profile.desiredCompensation
+      if (!val && /compensation|salary|expect/i.test(qText)) {
+        val = getVal(p, "desiredCompensation");
+      }
+      if (val) {
+        setNativeValue(inp, val as string);
+        result.filled++;
+      }
+    }
+
     // checkbox / radio cards (demographics, work auth, custom yes/no)
+    const answeredEEO = new Set<string>();
     const choiceCards = document.querySelectorAll<HTMLInputElement>(
       'input[type="checkbox"]:not([disabled]), input[type="radio"]:not([disabled])',
     );
@@ -311,18 +329,28 @@ export const leverDriver: FillDriver = {
       ];
       for (const eeo of eeoSections) {
         if (eeo.pattern.test(questionText)) {
+          if (answeredEEO.has(eeo.key)) break;
           const val = getVal(p, eeo.key);
           if (val && inp.value.toLowerCase() === val.toLowerCase()) {
             setCheckbox(inp, true);
             result.filled++;
             matched = true;
+            answeredEEO.add(eeo.key);
             break;
           }
-          // no profile match → pick "Choose not to Answer" / "Prefer not to say"
+        }
+      }
+      if (matched) continue;
+
+      // EEO fallback — no profile match → pick "Choose not to Answer"
+      for (const eeo of eeoSections) {
+        if (eeo.pattern.test(questionText)) {
+          if (answeredEEO.has(eeo.key)) break;
           if (/choose not|prefer not/i.test(inp.value)) {
             setCheckbox(inp, true);
             result.filled++;
             matched = true;
+            answeredEEO.add(eeo.key);
             break;
           }
         }
@@ -383,7 +411,6 @@ export const leverDriver: FillDriver = {
       '[data-qa="opportunity-location-select"], select[name="opportunityLocationId"]',
     );
     if (locSelect && isVisible(locSelect)) {
-      // try to match city/state if the option text contains it
       if (city) {
         for (const opt of locSelect.options) {
           if (opt.text.toLowerCase().includes(city.toLowerCase())) {

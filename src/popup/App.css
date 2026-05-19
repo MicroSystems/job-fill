@@ -81,9 +81,12 @@ body {
 
 .header-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+}
+
+.header-row > span:first-child {
+  flex: 1;
 }
 
 .popup-header h1 {
@@ -94,11 +97,27 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  text-align: center;
 }
 
 .header-actions {
+  flex: 1;
   display: flex;
+  justify-content: flex-end;
   gap: 4px;
+}
+
+.detected-row {
+  text-align: center;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 8px;
+}
+
+.detected-row strong {
+  color: #fbbf24;
+  text-transform: capitalize;
+  font-weight: 600;
 }
 
 .icon-btn {
@@ -119,6 +138,42 @@ body {
 .icon-btn:hover {
   background: rgba(255,255,255,0.16);
   transform: scale(1.05);
+}
+
+.profile-selector-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.profile-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.6);
+  white-space: nowrap;
+}
+
+.profile-select {
+  flex: 1;
+  padding: 4px 6px;
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+  color: var(--header-text);
+  cursor: pointer;
+  outline: none;
+  min-width: 0;
+}
+
+.profile-select:focus {
+  border-color: var(--accent);
+}
+
+.profile-select option {
+  background: #292524;
+  color: #faf8f5;
 }
 
 .tab-bar {
