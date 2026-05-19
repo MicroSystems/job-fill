@@ -1,0 +1,313 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  min-width: 420px;
+  min-height: 500px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, sans-serif;
+  font-size: 13px;
+  color: #1a1a2e;
+  background: #f8f9fa;
+  width: 420px;
+  min-height: 500px;
+}
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  min-height: 500px;
+}
+
+.popup-header {
+  background: #1a1a2e;
+  color: white;
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.popup-header h1 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.tab-bar {
+  display: flex;
+  gap: 4px;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.tab.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.popup-body {
+  padding: 12px 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.profile-form section {
+  margin-bottom: 16px;
+}
+
+.profile-form h2 {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6c757d;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 4px;
+}
+
+.field-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.field-row label {
+  flex: 1;
+  min-width: 80px;
+  font-size: 11px;
+  color: #495057;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.field-row label.wide {
+  flex: 2;
+}
+
+.field-row input,
+.field-row select,
+textarea {
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 12px;
+  width: 100%;
+  background: white;
+}
+
+textarea {
+  resize: vertical;
+  font-family: inherit;
+  width: 100%;
+}
+
+.checkbox-label {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 4px !important;
+  min-width: auto !important;
+}
+
+.checkbox-label input {
+  width: auto;
+}
+
+.entry-block {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: #1a1a2e;
+  color: white;
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.btn-secondary {
+  background: #4361ee;
+  color: white;
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.btn-small {
+  background: #e9ecef;
+  color: #495057;
+  font-size: 11px;
+  padding: 4px 10px;
+}
+
+.save-btn {
+  margin: 8px 0 16px;
+}
+
+.action-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 0;
+}
+
+.platform-badge {
+  font-size: 13px;
+  color: #6c757d;
+  text-align: center;
+}
+
+.platform-badge strong {
+  color: #1a1a2e;
+  text-transform: capitalize;
+}
+
+.hint {
+  font-size: 11px;
+  color: #6c757d;
+  text-align: center;
+}
+
+.status-box {
+  background: #f1f3f5;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 12px;
+}
+
+.status {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.result {
+  font-size: 11px;
+  background: #e9ecef;
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+  max-height: 200px;
+  overflow: auto;
+  width: 100%;
+  white-space: pre-wrap;
+}
+
+.resume-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.history-panel {
+  padding: 8px 0;
+}
+
+.empty-state {
+  text-align: center;
+  color: #6c757d;
+  padding: 24px 0;
+  font-size: 13px;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.job-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.job-item {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.job-url {
+  font-size: 12px;
+  font-family: monospace;
+  color: #495057;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.job-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.badge {
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.badge.success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge.fail {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.platform-tag {
+  background: #e2e3f1;
+  color: #3a3a6e;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  text-transform: capitalize;
+}
+
+.timestamp {
+  color: #6c757d;
+  margin-left: auto;
+}
