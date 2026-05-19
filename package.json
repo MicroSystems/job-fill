@@ -8,7 +8,7 @@
     "dev": "webpack --mode development --watch",
     "package": "webpack --mode production && cd dist && web-ext build --overwrite-dest",
     "lint": "tsc --noEmit",
-    "start:firefox": "webpack --mode development && web-ext run --source-dir dist --firefox=firefoxdeveloperedition"
+    "start:firefox": "webpack --mode development && web-ext run --source-dir dist --firefox=/Applications/Firefox.app/Contents/MacOS/firefox"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

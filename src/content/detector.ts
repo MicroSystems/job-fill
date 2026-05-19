@@ -49,5 +49,14 @@ export function detectPlatform(url: string, doc: Document): Platform {
     return "smartrecruiters";
   }
 
+  if (
+    hostname.includes("apply.workable.com") ||
+    hostname.includes("workable.com") ||
+    doc.querySelector('[data-qa="workable-apply"]') ||
+    doc.querySelector("#workable-form")
+  ) {
+    return "workable";
+  }
+
   return "generic";
 }

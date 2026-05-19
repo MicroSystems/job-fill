@@ -14,6 +14,7 @@ declare namespace browser {
     const onInstalled: { addListener(cb: () => void): void };
     const onMessage: BrowserRuntimeOnMessage;
     function sendMessage(message: any): Promise<any>;
+    function getURL(path: string): string;
   }
   namespace tabs {
     interface Tab {
@@ -28,6 +29,19 @@ declare namespace browser {
       url?: string[];
     }): Promise<Tab[]>;
     function sendMessage(tabId: number, message: any): Promise<any>;
+    function create(createProperties: { url?: string; active?: boolean }): Promise<Tab>;
+  }
+  namespace windows {
+    function create(createData: {
+      url?: string;
+      type?: "normal" | "popup" | "panel";
+      width?: number;
+      height?: number;
+      titlePreface?: string;
+    }): Promise<Window>;
+    interface Window {
+      id?: number;
+    }
   }
   namespace storage {
     namespace local {

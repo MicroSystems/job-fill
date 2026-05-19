@@ -5,6 +5,7 @@ import { leverDriver } from "./drivers/lever";
 import { ashbyDriver } from "./drivers/ashby";
 import { workdayDriver } from "./drivers/workday";
 import { smartrecruitersDriver } from "./drivers/smartrecruiters";
+import { workableDriver } from "./drivers/workable";
 
 export interface FillDriver {
   fill(profile: Record<string, any>, profileRaw: any): Promise<FillResponse>;
@@ -21,6 +22,7 @@ const drivers: Record<string, FillDriver> = {
   ashby: ashbyDriver,
   workday: workdayDriver,
   smartrecruiters: smartrecruitersDriver,
+  workable: workableDriver,
 };
 
 export async function fill(

@@ -86,6 +86,11 @@ export function uploadFile(element: HTMLElement, fileData: string, filename: str
   const input = element as HTMLInputElement;
   input.files = dt.files;
   input.dispatchEvent(new Event("change", { bubbles: true }));
+  // also trigger via jQuery if the page uses it (Lever, Greenhouse, etc.)
+  const w = window as any;
+  if (w.jQuery) {
+    w.jQuery(input).trigger("change");
+  }
 }
 
 export function findButton(textPattern: RegExp): HTMLElement | null {

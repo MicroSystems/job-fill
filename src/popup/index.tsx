@@ -1,22 +1,62 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { ProfileForm } from "./ProfileForm";
 import "./App.css";
 
+type Theme = "light" | "dark";
+
+function getInitialTheme(): Theme {
+  return (localStorage.getItem("jf-theme") as Theme) || "light";
+}
+
 function App() {
-  const [tab, setTab] = React.useState<"profile" | "action" | "history">("profile");
+  const [tab, setTab] = React.useState<"action" | "history">("action");
+  const [theme, setTheme] = React.useState<Theme>(getInitialTheme);
+
+  React.useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("jf-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === "light" ? "dark" : "light"));
 
   return (
     <div className="popup">
       <header className="popup-header">
-        <h1>Job Fill</h1>
+        <div className="header-row">
+          <h1>Job Fill</h1>
+          <div className="header-actions">
+            <button className="icon-btn" onClick={toggleTheme} title="Toggle theme">
+              {theme === "light" ? (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+              ) : (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="5" />
+                  <line x1="12" y1="1" x2="12" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="23" />
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                  <line x1="1" y1="12" x2="3" y2="12" />
+                  <line x1="21" y1="12" x2="23" y2="12" />
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+              )}
+            </button>
+            <button
+              className="icon-btn"
+              title="Edit Profile"
+              onClick={() => browser.runtime.sendMessage({ type: "open-profile" })}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+          </div>
+        </div>
         <nav className="tab-bar">
-          <button
-            className={`tab ${tab === "profile" ? "active" : ""}`}
-            onClick={() => setTab("profile")}
-          >
-            Profile
-          </button>
           <button
             className={`tab ${tab === "action" ? "active" : ""}`}
             onClick={() => setTab("action")}
@@ -33,7 +73,6 @@ function App() {
       </header>
 
       <div className="popup-body">
-        {tab === "profile" && <ProfileForm />}
         {tab === "action" && <ActionPanel />}
         {tab === "history" && <HistoryPanel />}
       </div>
@@ -46,15 +85,16 @@ function ActionPanel() {
   const [status, setStatus] = React.useState<string>("");
   const [result, setResult] = React.useState<string>("");
 
-  React.useEffect(() => {
+  const queryActiveTab = (msg: any) =>
     browser.tabs
       .query({ active: true, currentWindow: true })
       .then((tabs) => {
         const tab = tabs[0];
-        if (tab.id) {
-          return browser.tabs.sendMessage(tab.id, { type: "get-platform" });
-        }
-      })
+        if (tab.id) return browser.tabs.sendMessage(tab.id, msg);
+      });
+
+  React.useEffect(() => {
+    queryActiveTab({ type: "get-platform" })
       .then((res: any) => {
         if (res?.platform) setPlatform(res.platform);
       })
@@ -84,7 +124,9 @@ function ActionPanel() {
     };
     browser.runtime.onMessage.addListener(handler);
     return () => {
-      try { browser.runtime.onMessage.removeListener(handler); } catch {}
+      try {
+        browser.runtime.onMessage.removeListener(handler);
+      } catch {}
     };
   }, []);
 

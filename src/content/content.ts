@@ -17,16 +17,32 @@ async function loadProfile(): Promise<{ profileObj: Record<string, any>; profile
   if (!profile) return null;
   const profileObj: Record<string, any> = JSON.parse(JSON.stringify(profile));
   const resume = await getResume();
-  if (resume) profileObj.resume = resume;
+  if (resume) {
+    profileObj.resume = resume;
+    (profile as any).resume = resume;
+  }
   return { profileObj, profile };
 }
 
 async function handleAutofill(): Promise<void> {
   detectAndStore();
-  if (!platform) return;
+
+  if (!platform) {
+    return browser.runtime.sendMessage({
+      type: "autofill-result",
+      platform: null,
+      result: { filled: 0, skipped: 0, errors: ["No supported application platform detected on this page"] },
+    });
+  }
 
   const loaded = await loadProfile();
-  if (!loaded) return;
+  if (!loaded) {
+    return browser.runtime.sendMessage({
+      type: "autofill-result",
+      platform,
+      result: { filled: 0, skipped: 0, errors: ["No profile saved. Go to Profile tab, fill in your details, and click Save Profile."] },
+    });
+  }
 
   const result = await fill(platform, loaded.profileObj, loaded.profile);
   browser.runtime.sendMessage({

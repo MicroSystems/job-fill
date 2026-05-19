@@ -54,6 +54,7 @@ export interface Profile {
   resume: { filename: string; data: string } | null;
   coverLetter: string;
   answers: Record<string, string>;
+  desiredCompensation?: string;
   workAuthorization?: string;
   requiredVisaSponsorship?: boolean;
   gender?: string;
@@ -62,7 +63,7 @@ export interface Profile {
   disabilityStatus?: string;
 }
 
-export type Platform = "workday" | "greenhouse" | "lever" | "ashby" | "smartrecruiters" | "generic";
+export type Platform = "workday" | "greenhouse" | "lever" | "ashby" | "smartrecruiters" | "workable" | "generic";
 
 export interface FieldMapping {
   profileKey: string;

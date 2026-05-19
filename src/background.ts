@@ -28,6 +28,18 @@ browser.runtime.onMessage.addListener(async (msg: any, _sender) => {
     await clearAppliedJobs();
     return { success: true };
   }
+  if (msg.type === "open-profile") {
+    await browser.tabs.create({ url: browser.runtime.getURL("profile.html") });
+  }
+  if (msg.type === "open-resume-upload") {
+    await browser.windows.create({
+      url: browser.runtime.getURL("upload.html"),
+      type: "popup",
+      width: 420,
+      height: 260,
+      titlePreface: "Job Fill - ",
+    });
+  }
   if (msg.type === "autofill-all-tabs") {
     const tabs = await browser.tabs.query({ url: ["https://*/*", "http://*/*"] });
     const results: any[] = [];

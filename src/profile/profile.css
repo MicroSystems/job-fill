@@ -1,0 +1,24 @@
+/* Profile page (full tab) extensions */
+.profile-page {
+  padding: 24px 16px;
+  min-height: 100vh;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.profile-page header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.profile-page header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+}

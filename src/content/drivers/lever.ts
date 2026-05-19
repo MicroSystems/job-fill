@@ -2,130 +2,404 @@ import type { FillResponse } from "../../types";
 import type { FillDriver } from "../driver";
 import {
   setNativeValue,
-  selectOption,
+  setCheckbox,
   uploadFile,
   isVisible,
 } from "../filler";
 
-function findFieldWithAttr(selector: string): HTMLElement | null {
-  return document.querySelector(selector);
-}
-
-function getValue(profile: Record<string, any>, key: string): string | undefined {
-  const parts = key.split(".");
-  let val: any = profile;
-  for (const part of parts) {
-    if (val == null) return undefined;
-    if (/^\d+$/.test(part)) {
-      const idx = parseInt(part);
-      val = Array.isArray(val) ? val[idx] : undefined;
+function getVal(obj: any, path: string): string | undefined {
+  const parts = path.split(".");
+  let v: any = obj;
+  for (const p of parts) {
+    if (v == null) return undefined;
+    if (/^\d+$/.test(p)) {
+      v = Array.isArray(v) ? v[parseInt(p)] : undefined;
     } else {
-      val = val[part];
+      v = v[p];
     }
   }
-  return val != null ? String(val) : undefined;
+  return v != null ? String(v) : undefined;
+}
+
+function qs<T extends HTMLElement = HTMLElement>(sel: string): T | null {
+  return document.querySelector<T>(sel);
 }
 
 export const leverDriver: FillDriver = {
-  submitSelector: '[data-qa*="submit"], [data-qa*="Submit"], button[type="submit"]',
-  nextSelector: '[data-qa*="next"], [data-qa*="Next"], [data-qa*="continue"], [data-qa*="Continue"]',
+  submitSelector:
+    '[data-qa*="submit"], [data-qa*="Submit"], button[type="submit"]',
+  nextSelector:
+    '[data-qa*="next"], [data-qa*="Next"], [data-qa*="continue"], [data-qa*="Continue"]',
   successSelector: '[class*="success"], [class*="confirmation"], [class*="thank"]',
-  async fill(profile: Record<string, any>, profileRaw: any): Promise<FillResponse> {
+  async fill(
+    profile: Record<string, any>,
+    profileRaw: any,
+  ): Promise<FillResponse> {
     const result: FillResponse = { filled: 0, skipped: 0, errors: [] };
+    const p = profileRaw ?? profile;
 
-    const nameGiven = getValue(profile, "name.given");
-    const nameFamily = getValue(profile, "name.family");
-    if (nameGiven) {
-      const el = findFieldWithAttr('[data-qa="name-input"], [name="name"], [id*="name"]');
+    // name
+    const given = getVal(p, "name.given");
+    const family = getVal(p, "name.family");
+    if (given) {
+      const el =
+        qs('[data-qa="name-input"]') ??
+        qs('[name="name"]') ??
+        qs('[id*="name"]');
       if (el) {
-        setNativeValue(el, `${nameGiven} ${nameFamily ?? ""}`.trim());
+        setNativeValue(el, `${given} ${family ?? ""}`.trim());
         result.filled++;
       }
     }
 
-    const emailVal = getValue(profile, "email");
-    if (emailVal) {
-      const el = findFieldWithAttr('[data-qa="email-input"], [name="email"], [id*="email"]');
+    // email
+    const email = getVal(p, "email");
+    if (email) {
+      const el =
+        qs('[data-qa="email-input"]') ??
+        qs('[name="email"]') ??
+        qs('[id*="email"]');
       if (el) {
-        setNativeValue(el, emailVal);
+        setNativeValue(el, email);
         result.filled++;
       }
     }
 
-    const phoneVal = getValue(profile, "phone.national");
-    if (phoneVal) {
-      const el = findFieldWithAttr('[data-qa="phone-input"], [name="phone"], [id*="phone"]');
+    // phone
+    const phone = getVal(p, "phone.national");
+    if (phone) {
+      const el =
+        qs('[data-qa="phone-input"]') ??
+        qs('[name="phone"]') ??
+        qs('[id*="phone"]');
       if (el) {
-        setNativeValue(el, phoneVal);
+        setNativeValue(el, phone);
         result.filled++;
       }
     }
 
-    const linkedinVal = getValue(profile, "social.linkedin");
-    if (linkedinVal) {
-      const el = findFieldWithAttr('[data-qa="linkedin-input"], [name*="linkedin"], [id*="linkedin"]');
+    // current company (org)
+    const company = getVal(p, "experience.0.company");
+    if (company) {
+      const el =
+        qs('[data-qa="org-input"]') ??
+        qs('[name="org"]') ??
+        qs('[id*="org"]');
       if (el) {
-        setNativeValue(el, linkedinVal);
+        setNativeValue(el, company);
         result.filled++;
       }
     }
 
-    const portfolioVal = getValue(profile, "social.portfolio");
-    if (portfolioVal) {
-      const el = findFieldWithAttr('[data-qa="website-input"], [name*="website"], [id*="portfolio"]');
+    // location (city)
+    const city = getVal(p, "address.city");
+    const state = getVal(p, "address.state");
+    if (city) {
+      const val = state ? `${city}, ${state}` : city;
+      const el =
+        qs('[data-qa="location-input"]') ??
+        qs('[name="location"]') ??
+        qs('[id*="location"]');
       if (el) {
-        setNativeValue(el, portfolioVal);
+        setNativeValue(el, val);
         result.filled++;
       }
     }
 
-    if (profileRaw.resume?.data) {
-      const fileInput = document.querySelector<HTMLInputElement>(
-        'input[type="file"], [data-qa="resume-input"]',
-      );
-      if (fileInput && isVisible(fileInput)) {
-        try {
-          uploadFile(fileInput, profileRaw.resume.data, profileRaw.resume.filename);
+    // url fields
+    const urlFields: Record<string, string> = {
+      LinkedIn: "social.linkedin",
+      GitHub: "social.github",
+      Portfolio: "social.portfolio",
+      Twitter: "social.twitter",
+    };
+    for (const [site, path] of Object.entries(urlFields)) {
+      const val = getVal(p, path);
+      if (val) {
+        const el =
+          qs(`[name="urls[${site}]"]`) ?? qs(`[data-qa="${site.toLowerCase()}-input"]`);
+        if (el) {
+          setNativeValue(el, val);
           result.filled++;
-        } catch (e) {
-          result.errors.push(`Resume upload: ${(e as Error).message}`);
         }
       }
     }
 
-    const coverLetterVal = getValue(profile, "coverLetter");
-    if (coverLetterVal) {
-      const el = findFieldWithAttr(
-        '[data-qa="cover-letter-input"], textarea[name*="cover"], textarea[id*="cover"]',
-      );
+    // cover letter
+    const cover = getVal(p, "coverLetter");
+    if (cover) {
+      const el =
+        qs('[data-qa="cover-letter-input"]') ??
+        qs('textarea[name*="cover"]') ??
+        qs('textarea[id*="cover"]');
       if (el) {
-        setNativeValue(el, coverLetterVal);
+        setNativeValue(el, cover);
         result.filled++;
       }
     }
 
-    const selects = document.querySelectorAll<HTMLSelectElement>(
-      'select[data-qa], select[name]',
+    // resume (file input is opacity:0, not display:none; skip visibility check)
+    if (p.resume?.data) {
+      const fileInput =
+        qs<HTMLInputElement>('#resume-upload-input') ??
+        qs<HTMLInputElement>('[data-qa="input-resume"]') ??
+        qs<HTMLInputElement>('input[type="file"][name="resume"]') ??
+        qs<HTMLInputElement>('input[type="file"]');
+      if (fileInput) {
+        try {
+          uploadFile(fileInput, p.resume.data, p.resume.filename);
+          result.filled++;
+        } catch (e) {
+          result.errors.push(`Resume: ${(e as Error).message}`);
+        }
+      } else {
+        result.errors.push("Resume: no file input found");
+      }
+    }
+
+    // timezone
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const tzEl = qs<HTMLInputElement>('[name="timezone"], #applicant-timezone');
+    if (tzEl) {
+      setNativeValue(tzEl, tz);
+      result.filled++;
+    }
+
+    // ------ custom question cards (text + checkbox/radio) ------
+
+    function getQuestionText(el: HTMLElement): string {
+      const q = el.closest(".application-question");
+      if (q) {
+        const labelDiv = q.querySelector(".application-label > .text");
+        if (labelDiv) return labelDiv.textContent?.trim() ?? "";
+        const anyLabel = q.querySelector(".application-label");
+        if (anyLabel) return anyLabel.textContent?.trim() ?? "";
+        return q.textContent?.trim() ?? "";
+      }
+      const d = el.closest("[data-name*=surveysResponses]");
+      if (d) {
+        const labelDiv = d.querySelector(".application-label > .text");
+        if (labelDiv) return labelDiv.textContent?.trim() ?? "";
+        return d.textContent?.trim() ?? "";
+      }
+      const c = el.closest(".card-field") ?? el.closest("[class*=question]");
+      if (c) return c.textContent?.trim() ?? "";
+      return "";
+    }
+
+    // text cards
+    const textCards = document.querySelectorAll<HTMLInputElement>(
+      'input.card-field-input[type="text"]:not([disabled]), input[type="text"][name^="cards["]:not([disabled])',
     );
-    for (const sel of selects) {
+    for (const inp of textCards) {
+      if (inp.value) continue;
+      const qText = getQuestionText(inp).toLowerCase();
+      const answers = p.answers ?? {};
+      let val = answers[inp.name];
+      // match by question text against answers keys
+      if (!val) {
+        for (const [k, v] of Object.entries(answers)) {
+          if (qText.includes(k.toLowerCase()) || k.toLowerCase().includes(qText)) {
+            val = v as string;
+            break;
+          }
+        }
+      }
+      // compensation expectations — use profile.desiredCompensation
+      if (!val && /compensation|salary|expect/i.test(qText)) {
+        val = getVal(p, "desiredCompensation");
+      }
+      if (val) {
+        setNativeValue(inp, val as string);
+        result.filled++;
+      }
+    }
+
+    // detect question text from an input — tries DOM first, then falls back to
+    // grouping sibling options so we can identify EEO surveys by their values
+    function qTextWithFallback(inp: HTMLInputElement): string {
+      const fromDom = getQuestionText(inp);
+      if (fromDom) return fromDom;
+
+      // DOM text extraction failed — try grouping options in the same container
+      // and matching against known EEO value sets
+      const container =
+        inp.closest(".application-question") ??
+        inp.closest("[data-name*=surveysResponses]") ??
+        inp.closest("li");
+      if (!container) return "";
+
+      const allValues = [
+        ...container.querySelectorAll<HTMLInputElement>(
+          'input[type="checkbox"], input[type="radio"]',
+        ),
+      ].map((i) => i.value);
+
+      const joined = allValues.join("|");
+      if (/Female|Male|Non-binary/i.test(joined)) return "gender";
+      if (/Caucasian|Hispanic|African American|Asian.*Pacific/i.test(joined))
+        return "race / ethnicity";
+      if (/veteran/i.test(joined)) return "veteran";
+      if (/disabilit/i.test(joined)) return "disability";
+      return "";
+    }
+
+    // checkbox / radio cards (demographics, work auth, custom yes/no)
+    const choiceCards = document.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]:not([disabled]), input[type="radio"]:not([disabled])',
+    );
+    for (const inp of choiceCards) {
+      if (inp.checked) continue;
+      const hiddenParent = inp.closest('[style*="display:none"]') ?? inp.closest('[style*="visibility:hidden"]');
+      if (hiddenParent) continue;
+      const questionText = qTextWithFallback(inp).toLowerCase().trim();
+      if (!questionText) continue;
+
+      const answers = p.answers ?? {};
+      let matched = false;
+
+      // 1) try matching against p.answers
+      for (const [k, v] of Object.entries(answers)) {
+        if (questionText.includes(k.toLowerCase())) {
+          const target = String(v).toLowerCase();
+          if (inp.value.toLowerCase() === target) {
+            setCheckbox(inp, true);
+            matched = true;
+            break;
+          }
+        }
+      }
+      if (matched) { result.filled++; continue; }
+
+      // 2) work authorization
+      const workAuth = p.workAuthorization;
+      if (/legally entitled|work.*(authoriz|permit|visa)|eligible.*work/i.test(questionText)) {
+        const target = workAuth?.toLowerCase().trim();
+        if (target) {
+          if (inp.value.toLowerCase() === target) {
+            setCheckbox(inp, true);
+            result.filled++;
+            continue;
+          }
+          continue; // explicitly set but value doesn't match this option — skip
+        }
+        // not set in profile → auto-yes
+        if (inp.value?.toLowerCase() === "yes") {
+          setCheckbox(inp, true);
+          result.filled++;
+          continue;
+        }
+      }
+
+      // 3) visa sponsorship
+      const needsVisa = p.requiredVisaSponsorship;
+      if (/sponsor|visa.*(require|need)/i.test(questionText)) {
+        const target = needsVisa !== undefined ? (needsVisa ? "yes" : "no") : "no";
+        if (inp.value.toLowerCase() === target) {
+          setCheckbox(inp, true);
+          result.filled++;
+          continue;
+        }
+      }
+
+      // 4) common gender/race/veteran/disability EEO questions
+      const eeoSections = [
+        { pattern: /gender|sex/i, key: "gender" },
+        { pattern: /race|ethnicity/i, key: "race" },
+        { pattern: /veteran/i, key: "veteranStatus" },
+        { pattern: /disability/i, key: "disabilityStatus" },
+      ];
+      for (const eeo of eeoSections) {
+        if (eeo.pattern.test(questionText)) {
+          const val = getVal(p, eeo.key);
+          if (val && inp.value.toLowerCase() === val.toLowerCase()) {
+            setCheckbox(inp, true);
+            result.filled++;
+            matched = true;
+            break;
+          }
+          // no profile match → pick "Choose not to Answer" / "Prefer not to say"
+          if (/choose not|prefer not/i.test(inp.value)) {
+            setCheckbox(inp, true);
+            result.filled++;
+            matched = true;
+            break;
+          }
+        }
+      }
+      if (matched) continue;
+
+      // 5) auto-yes for confirm/agree/certify
+      if (/confirm|agree|certify|understand/i.test(questionText) && inp.value?.toLowerCase() === "yes") {
+        setCheckbox(inp, true);
+        result.filled++;
+      }
+    }
+
+    // EEO selects (gender, race, veteran, disability)
+    const eeoSelects = document.querySelectorAll<HTMLSelectElement>(
+      'select:not([disabled])',
+    );
+    for (const sel of eeoSelects) {
       if (!isVisible(sel)) continue;
-      const name = (sel.name ?? sel.id).toLowerCase();
-      if (/gender/i.test(name) && getValue(profile, "gender")) {
-        selectOption(sel, getValue(profile, "gender")!);
-        result.filled++;
+      const qText = getQuestionText(sel).toLowerCase();
+      const eeoSections = [
+        { pattern: /gender|sex/i, key: "gender" },
+        { pattern: /race|ethnicity/i, key: "race" },
+        { pattern: /veteran/i, key: "veteranStatus" },
+        { pattern: /disability/i, key: "disabilityStatus" },
+      ];
+      for (const eeo of eeoSections) {
+        if (eeo.pattern.test(qText)) {
+          const val = getVal(p, eeo.key);
+          if (val) {
+            for (const opt of sel.options) {
+              if (opt.text.toLowerCase() === val.toLowerCase()) {
+                sel.value = opt.value;
+                sel.dispatchEvent(new Event("change", { bubbles: true }));
+                result.filled++;
+                break;
+              }
+            }
+          }
+          // no profile match → pick "Choose not to Answer" / "Prefer not to say"
+          if (!result.filled) {
+            for (const opt of sel.options) {
+              if (/choose not|prefer not/i.test(opt.text)) {
+                sel.value = opt.value;
+                sel.dispatchEvent(new Event("change", { bubbles: true }));
+                result.filled++;
+                break;
+              }
+            }
+          }
+          break;
+        }
       }
-      if (/race|ethnicity/i.test(name) && getValue(profile, "race")) {
-        selectOption(sel, getValue(profile, "race")!);
-        result.filled++;
+    }
+
+    // location select
+    const locSelect = qs<HTMLSelectElement>(
+      '[data-qa="opportunity-location-select"], select[name="opportunityLocationId"]',
+    );
+    if (locSelect && isVisible(locSelect)) {
+      // try to match city/state if the option text contains it
+      if (city) {
+        for (const opt of locSelect.options) {
+          if (opt.text.toLowerCase().includes(city.toLowerCase())) {
+            locSelect.value = opt.value;
+            locSelect.dispatchEvent(new Event("change", { bubbles: true }));
+            result.filled++;
+            break;
+          }
+        }
       }
-      if (/veteran/i.test(name) && getValue(profile, "veteranStatus")) {
-        selectOption(sel, getValue(profile, "veteranStatus")!);
-        result.filled++;
-      }
-      if (/disability/i.test(name) && getValue(profile, "disabilityStatus")) {
-        selectOption(sel, getValue(profile, "disabilityStatus")!);
-        result.filled++;
-      }
+    }
+
+    if (result.filled === 0 && result.errors.length === 0) {
+      result.errors.push(
+        "Found Lever form but no fields could be matched",
+      );
     }
 
     return result;
