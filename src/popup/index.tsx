@@ -14,6 +14,7 @@ function App() {
   const [profileNames, setProfileNames] = React.useState<string[]>([]);
   const [currentProfile, setCurrentProfile] = React.useState("");
   const [platform, setPlatform] = React.useState<string>("");
+  const [deleteTarget, setDeleteTarget] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -60,10 +61,17 @@ function App() {
       alert("Cannot delete the last profile.");
       return;
     }
-    if (!confirm(`Delete profile "${currentProfile}"?`)) return;
-    await browser.runtime.sendMessage({ type: "delete-profile", name: currentProfile });
+    setDeleteTarget(currentProfile);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    await browser.runtime.sendMessage({ type: "delete-profile", name: deleteTarget });
+    setDeleteTarget(null);
     await loadProfiles();
   };
+
+  const cancelDelete = () => setDeleteTarget(null);
 
   return (
     <div className="popup">
@@ -153,6 +161,19 @@ function App() {
         {tab === "action" && <ActionPanel />}
         {tab === "history" && <HistoryPanel />}
       </div>
+
+      {deleteTarget && (
+        <div className="modal-overlay" onClick={cancelDelete}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <p>Delete profile <strong>{deleteTarget}</strong>?</p>
+            <p className="modal-hint">This will also remove the saved resume for this profile.</p>
+            <div className="modal-actions">
+              <button className="btn btn-small" onClick={cancelDelete}>Cancel</button>
+              <button className="btn btn-small modal-confirm" onClick={confirmDelete}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
