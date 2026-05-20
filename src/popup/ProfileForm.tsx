@@ -222,6 +222,34 @@ export function ProfileForm({ profileName: initialName }: { profileName?: string
       </section>
 
       <section>
+        <h2>Current Location</h2>
+        <div className="field-row">
+          <label className="wide">
+            Where are you currently located?
+            <input
+              value={profile.currentLocation ?? ""}
+              onChange={(e) => update("currentLocation", e.target.value)}
+              placeholder="e.g. San Francisco, CA"
+            />
+          </label>
+        </div>
+      </section>
+
+      <section>
+        <h2>Notice Period</h2>
+        <div className="field-row">
+          <label className="wide">
+            What is your notice period?
+            <input
+              value={profile.noticePeriod ?? ""}
+              onChange={(e) => update("noticePeriod", e.target.value)}
+              placeholder="e.g. 2 weeks, 30 days, Immediate"
+            />
+          </label>
+        </div>
+      </section>
+
+      <section>
         <h2>Work History</h2>
         {profile.experience.map((exp, i) => (
           <div key={i} className="entry-block">
@@ -299,8 +327,18 @@ export function ProfileForm({ profileName: initialName }: { profileName?: string
         <h2>Work Authorization</h2>
         <div className="field-row">
           <label className="wide">
-            Are you legally entitled to work in Canada?
+            Are you legally authorized to work in the country you are applying for?
             <select value={profile.workAuthorization ?? ""} onChange={(e) => update("workAuthorization", e.target.value)}>
+              <option value="">--</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </label>
+        </div>
+        <div className="field-row" style={{ marginTop: 6 }}>
+          <label className="wide">
+            Will you now or in the future require sponsorship for employment visa status?
+            <select value={profile.requiredVisaSponsorship !== undefined ? (profile.requiredVisaSponsorship ? "Yes" : "No") : ""} onChange={(e) => update("requiredVisaSponsorship", e.target.value === "Yes" ? true : e.target.value === "No" ? false : "")}>
               <option value="">--</option>
               <option value="Yes">Yes</option>
               <option value="No">No</option>

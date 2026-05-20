@@ -61,6 +61,8 @@ export interface Profile {
   race?: string;
   veteranStatus?: string;
   disabilityStatus?: string;
+  currentLocation?: string;
+  noticePeriod?: string;
 }
 
 export type Platform = "workday" | "greenhouse" | "lever" | "ashby" | "smartrecruiters" | "workable" | "generic";

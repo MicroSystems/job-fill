@@ -169,10 +169,9 @@ async function handleCustomQuestions(
             }
           }
         } else {
-          const nativeSetter = Object.getOwnPropertyDescriptor(
-            window.HTMLInputElement.prototype,
-            "value",
-          )?.set;
+          const tag = inp.tagName;
+          const proto = tag === "TEXTAREA" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+          const nativeSetter = Object.getOwnPropertyDescriptor(proto, "value")?.set;
           if (nativeSetter) {
             nativeSetter.call(inp, answer);
           } else {

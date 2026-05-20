@@ -19,29 +19,23 @@ export const workableDriver: FillDriver = {
     // Workable is a React SPA — wait for rendering
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const formRoot = document.querySelector("#app, main, form, [class*=\"application\"]");
-    if (!formRoot) {
-      result.errors.push("Workable form container not found");
-      return result;
-    }
+    const formRoot =
+      document.querySelector("#app, main, form, [class*=\"application\"], [class*=\"apply\"]") ??
+      document.querySelector('[class*="job-application"]');
 
     // ── Baseline fill using shared FIELD_MAPPINGS ──────────────────────────
-    const baseline = fillAllFields(profileRaw, formRoot);
+    const root = formRoot ?? document;
+    const baseline = fillAllFields(profileRaw, root);
     result.filled += baseline.filled;
     result.skipped += baseline.skipped;
     result.errors.push(...baseline.errors);
 
     // ── Workable-specific: resume file inputs ──────────────────────────────
     const used = new Set<HTMLElement>();
-    const allInputs = formRoot.querySelectorAll<HTMLElement>(
-      "input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=reset]), select, textarea"
-    );
-    for (const inp of allInputs) used.add(inp);
 
     // Resume via label match (choose file, upload resume, etc.)
     const resumeMappings = FIELD_MAPPINGS.filter((m) => m.profileKey === "resume");
-    for (const inp of formRoot.querySelectorAll<HTMLElement>("input[type=file]:not([disabled])")) {
-      if (used.has(inp)) continue;
+    for (const inp of root.querySelectorAll<HTMLElement>("input[type=file]:not([disabled])")) {
       const labelText = getLabelText(inp);
       if (!labelText) continue;
       const isResume = resumeMappings.some((m) => m.labelPatterns.some((p) => p.test(labelText)));
@@ -59,7 +53,7 @@ export const workableDriver: FillDriver = {
       }
     }
 
-    // Fallback: any remaining file input
+    // Fallback: any remaining file input on the page
     for (const fi of document.querySelectorAll<HTMLInputElement>("input[type=file]:not([disabled])")) {
       if (used.has(fi)) continue;
       const resume = profileRaw?.resume;
@@ -72,12 +66,6 @@ export const workableDriver: FillDriver = {
           result.errors.push(`file upload: ${(e as Error).message}`);
         }
       }
-    }
-
-    if (result.filled === 0 && result.errors.length === 0) {
-      result.errors.push(
-        `Found ${allInputs.length} inputs in form, but none matched profile fields.`
-      );
     }
 
     return result;

@@ -231,12 +231,8 @@ function ActionPanel() {
         Auto-Fill This Page
       </button>
 
-      <button className="btn btn-primary" onClick={() => handleAction("autoapply")}>
-        Auto-Apply This Page
-      </button>
-
       <p className="hint">
-        Auto-Fill fills the form for review. Auto-Apply fills and submits.
+        Auto-Fill fills the form for review.
       </p>
 
       {status && (

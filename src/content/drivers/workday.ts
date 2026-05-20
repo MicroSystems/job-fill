@@ -1,6 +1,7 @@
 import type { FillResponse } from "../../types";
 import type { FillDriver } from "../driver";
 import {
+  fillAllFields,
   setNativeValue,
   selectOption,
   isVisible,
@@ -15,6 +16,26 @@ export const workdayDriver: FillDriver = {
   successSelector: '[data-automation-id*="success"], [data-automation-id*="confirmation"], [class*="success"]',
   async fill(profile: Record<string, any>, profileRaw: any): Promise<FillResponse> {
     const result: FillResponse = { filled: 0, skipped: 0, errors: [] };
+
+    // Workday is a React SPA — wait for rendering
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // ── Baseline fill using shared FIELD_MAPPINGS ──────────────────────────
+    // Skip keys that Workday handles via data-automation-id selectors
+    const wdKeys = new Set([
+      "name.given", "name.family", "name.full",
+      "email", "phone.national",
+      "address.line1", "address.city", "address.state", "address.zip", "address.country",
+      "social.linkedin",
+      "workAuthorization",
+      "gender", "race", "veteranStatus", "disabilityStatus",
+    ]);
+    const baseline = fillAllFields(profileRaw, document, wdKeys);
+    result.filled += baseline.filled;
+    result.skipped += baseline.skipped;
+    result.errors.push(...baseline.errors);
+
+    // ── Workday-specific: data-automation-id based fields ──────────────────
 
     function findWdField(attrPattern: string): HTMLElement | null {
       return document.querySelector<HTMLElement>(
@@ -36,7 +57,6 @@ export const workdayDriver: FillDriver = {
       return false;
     }
 
-    // ── Core fields via Workday data-automation-id ─────────────────────────
     const fields: [string, string][] = [
       ["first", "name.given"],
       ["givenName", "name.given"],
@@ -56,12 +76,17 @@ export const workdayDriver: FillDriver = {
       ["linkedin", "social.linkedin"],
       ["work", "workAuthorization"],
       ["authoriz", "workAuthorization"],
-      ["visa", "workAuthorization"],
+      ["visa", "visa"],
+      ["sponsor", "requiredVisaSponsorship"],
       ["gender", "gender"],
       ["race", "race"],
       ["ethnicity", "race"],
       ["disability", "disabilityStatus"],
-      ["veteran", "disabilityStatus"],
+      ["veteran", "veteranStatus"],
+      ["compensation", "desiredCompensation"],
+      ["salary", "desiredCompensation"],
+      ["location", "currentLocation"],
+      ["notice", "noticePeriod"],
     ];
 
     const filledAttrs = new Set<string>();

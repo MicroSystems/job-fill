@@ -255,6 +255,14 @@ export const leverDriver: FillDriver = {
       if (!val && /compensation|salary|expect/i.test(qText)) {
         val = getVal(p, "desiredCompensation");
       }
+      // current location
+      if (!val && /where.*(you|are).*locat|current.*locat/i.test(qText)) {
+        val = getVal(p, "currentLocation");
+      }
+      // notice period
+      if (!val && /notice.?period|notice.?duration/i.test(qText)) {
+        val = getVal(p, "noticePeriod");
+      }
       if (val) {
         setNativeValue(inp, val as string);
         result.filled++;
@@ -291,7 +299,7 @@ export const leverDriver: FillDriver = {
 
       // 2) work authorization
       const workAuth = p.workAuthorization;
-      if (/legally entitled|work.*(authoriz|permit|visa)|eligible.*work/i.test(questionText)) {
+      if (/legally entitled|legally.*authorized|authoriz.*work|work.*(authoriz|permit|visa)|eligible.*work/i.test(questionText)) {
         const target = workAuth?.toLowerCase().trim();
         if (target) {
           if (inp.value.toLowerCase() === target) {

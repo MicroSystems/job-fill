@@ -3,12 +3,22 @@ import type { Platform } from "../types";
 export function detectPlatform(url: string, doc: Document): Platform {
   const hostname = new URL(url).hostname.toLowerCase();
 
+  // Workable must be checked before Workday because some Workable pages
+  // contain elements with data-automation-id that would falsely trigger Workday.
+  if (
+    hostname.includes("apply.workable.com") ||
+    hostname.includes("workable.com") ||
+    doc.querySelector('[data-qa="workable-apply"]') ||
+    doc.querySelector("#workable-form")
+  ) {
+    return "workable";
+  }
+
   if (
     hostname.includes("myworkdayjobs") ||
     hostname.includes("wd5.myworkdayjobs") ||
     hostname.includes("workday") ||
-    doc.querySelector("[data-automation-id]") ||
-    doc.querySelector("[data-automation-label]") ||
+    (hostname.includes("workday") && (doc.querySelector("[data-automation-id]") || doc.querySelector("[data-automation-label]"))) ||
     /\/jobs\/\d+\/apply\/?/.test(url) && doc.querySelector('iframe[src*="workday"]')
   ) {
     return "workday";
@@ -47,15 +57,6 @@ export function detectPlatform(url: string, doc: Document): Platform {
     doc.querySelector('[data-sr-apply-form]')
   ) {
     return "smartrecruiters";
-  }
-
-  if (
-    hostname.includes("apply.workable.com") ||
-    hostname.includes("workable.com") ||
-    doc.querySelector('[data-qa="workable-apply"]') ||
-    doc.querySelector("#workable-form")
-  ) {
-    return "workable";
   }
 
   return "generic";

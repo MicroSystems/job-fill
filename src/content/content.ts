@@ -9,6 +9,7 @@ let scanned = false;
 function detectAndStore(): void {
   if (scanned) return;
   platform = detectPlatform(window.location.href, document);
+  console.log("[jobfill] detected platform:", platform);
   scanned = true;
 }
 
@@ -83,8 +84,18 @@ async function handleAutoApply(): Promise<void> {
 }
 
 browser.runtime.onMessage.addListener((msg: any) => {
-  if (msg.type === "autofill") handleAutofill();
-  if (msg.type === "autoapply") handleAutoApply();
+  if (msg.type === "autofill") {
+    handleAutofill().catch((err) => {
+      browser.runtime.sendMessage({
+        type: "autofill-result",
+        platform,
+        result: { filled: 0, skipped: 0, errors: [(err as Error).message] },
+      });
+    });
+  }
+  if (msg.type === "autoapply") {
+    handleAutoApply().catch(() => {});
+  }
   if (msg.type === "get-platform") {
     detectAndStore();
     return Promise.resolve({ platform });

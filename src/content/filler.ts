@@ -53,7 +53,9 @@ export const FIELD_MAPPINGS: FieldMapping[] = [
   { labelPatterns: [/cover.?letter/i], profileKey: "coverLetter", type: "textarea" },
   { labelPatterns: [/resume/i, /cv/i, /upload.?resume/i], profileKey: "resume", type: "file" },
   { labelPatterns: [/compensation/i, /salary.?expect/i, /desired.?comp/i], profileKey: "desiredCompensation" },
-  { labelPatterns: [/work.?auth/i, /entitled.*work/i, /eligible.*work/i, /legally.*work/i], profileKey: "workAuthorization" },
+  { labelPatterns: [/current.?location/i, /where.*(you|are).*locat/i], profileKey: "currentLocation" },
+  { labelPatterns: [/notice.?period/i, /notice.?duration/i], profileKey: "noticePeriod" },
+  { labelPatterns: [/work.?auth/i, /entitled.*work/i, /eligible.*work/i, /legally.*work/i, /legally.*authoriz/i], profileKey: "workAuthorization" },
   { labelPatterns: [/visa.?sponsor/i, /sponsorship/i], profileKey: "requiredVisaSponsorship" },
   // EEO
   { labelPatterns: [/gender/i, /sex/i], profileKey: "gender" },
@@ -115,7 +117,15 @@ export function getLabelText(el: HTMLElement): string {
     const inner = container.querySelector("label, span[class*='label'], [class*='label']");
     if (inner) return inner.textContent?.trim() ?? "";
   }
-  // 7) name attribute (last resort — React/Next.js apps like RecruitCRM)
+  // 7) for radio/checkbox, look for fieldset > legend (the question text)
+  if ((el as HTMLInputElement).type === "radio" || (el as HTMLInputElement).type === "checkbox") {
+    const fieldset = el.closest("fieldset");
+    if (fieldset) {
+      const legend = fieldset.querySelector("legend");
+      if (legend) return legend.textContent?.trim() ?? "";
+    }
+  }
+  // 8) name attribute (React/Next.js apps like RecruitCRM)
   const nameAttr = el.getAttribute("name");
   if (nameAttr && nameAttr.length >= 2 && !nameAttr.startsWith("_")) return nameAttr;
   return "";
@@ -124,16 +134,29 @@ export function getLabelText(el: HTMLElement): string {
 // ── Input Filling ──────────────────────────────────────────────────────────
 
 export function setNativeValue(element: HTMLElement, value: string): void {
-  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-    window.HTMLInputElement.prototype,
-    "value",
-  )?.set;
-  if (nativeInputValueSetter) {
-    nativeInputValueSetter.call(element, value);
-  } else {
-    (element as HTMLInputElement).value = value;
+  // contentEditable div — set textContent instead of .value
+  if (element.isContentEditable || element.getAttribute("role") === "textbox") {
+    element.textContent = value;
+    element.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: value }));
+    element.dispatchEvent(new Event("change", { bubbles: true }));
+    element.dispatchEvent(new Event("blur", { bubbles: true }));
+    return;
   }
-  element.dispatchEvent(new Event("input", { bubbles: true }));
+
+  // Standard input/textarea — use native value setter for React detection
+  let setter: Function | undefined;
+  if (element instanceof HTMLTextAreaElement) {
+    setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
+  } else if (element instanceof HTMLInputElement && element.type !== "file") {
+    setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+  }
+  if (setter) {
+    setter.call(element, value);
+  } else {
+    (element as any).value = value;
+  }
+  // React listens for InputEvent with inputType, not just generic Event
+  element.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: value }));
   element.dispatchEvent(new Event("change", { bubbles: true }));
   element.dispatchEvent(new Event("blur", { bubbles: true }));
 }
@@ -233,8 +256,28 @@ export function fillAllFields(
     let value = mapping.transform ? mapping.transform(profile) : resolveProfileValue(profile, mapping.profileKey);
     if (!value) continue;
 
-    // Fill based on element type
     fillInputElement(input, value);
+    filledKeys.add(mapping.profileKey);
+    result.filled++;
+  }
+
+  // Also handle contentEditable divs (React frameworks like Chakra UI)
+  const editableDivs = root.querySelectorAll<HTMLElement>(
+    '[contenteditable="true"]:not([disabled]), [contenteditable=""]:not([disabled])',
+  );
+  for (const div of editableDivs) {
+    if (!isVisible(div)) continue;
+    const labelText = getLabelText(div);
+    if (!labelText) continue;
+    const mapping = FIELD_MAPPINGS.find((m) => m.labelPatterns.some((p) => p.test(labelText)));
+    if (!mapping) continue;
+    if (skipKeys.has(mapping.profileKey)) continue;
+    if (filledKeys.has(mapping.profileKey)) continue;
+    const value = mapping.transform
+      ? mapping.transform(profile)
+      : resolveProfileValue(profile, mapping.profileKey);
+    if (!value) continue;
+    setNativeValue(div, value);
     filledKeys.add(mapping.profileKey);
     result.filled++;
   }
