@@ -4,13 +4,14 @@ import { autoApply } from "./autoapply";
 import { getProfile, getResume, addAppliedJob } from "../storage";
 
 let platform: ReturnType<typeof detectPlatform> | null = null;
-let scanned = false;
+let _detectCount = 0;
 
 function detectAndStore(): void {
-  if (scanned) return;
-  platform = detectPlatform(window.location.href, document);
-  console.log("[jobfill] detected platform:", platform);
-  scanned = true;
+  _detectCount++;
+  const url = window.location.href;
+  const hostname = new URL(url).hostname;
+  platform = detectPlatform(url, document);
+  console.log(`[jobfill] detect #${_detectCount} url=${url} hostname=${hostname} => platform=${platform}`);
 }
 
 async function loadProfile(): Promise<{ profileObj: Record<string, any>; profile: any } | null> {
@@ -102,8 +103,4 @@ browser.runtime.onMessage.addListener((msg: any) => {
   }
 });
 
-const observer = new MutationObserver(() => {
-  if (!scanned) detectAndStore();
-});
 
-observer.observe(document.body, { childList: true, subtree: true });

@@ -49,8 +49,8 @@
 }
 
 html {
-  min-width: 500px;
-  min-height: 300px;
+  min-width: 350px;
+  min-height: 200px;
 }
 
 body {
@@ -58,8 +58,8 @@ body {
   font-size: 13px;
   color: var(--text);
   background: var(--bg);
-  width: 500px;
-  min-height: 300px;
+  width: 380px;
+  min-height: 200px;
   margin: 0 auto;
   -webkit-font-smoothing: antialiased;
 }

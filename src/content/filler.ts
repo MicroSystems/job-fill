@@ -18,7 +18,7 @@ export interface FieldMapping {
 export const FIELD_MAPPINGS: FieldMapping[] = [
   // Name
   {
-    labelPatterns: [/full.?name/i, /your.?name/i, /^name$/i],
+    labelPatterns: [/full.?name/i, /full.?legal.?name/i, /legal.?name/i, /your.?name/i, /^name$/i],
     profileKey: "name.full",
     transform: (p) => `${p.name.given} ${p.name.family}`.trim(),
   },
@@ -44,9 +44,12 @@ export const FIELD_MAPPINGS: FieldMapping[] = [
   { labelPatterns: [/github/i], profileKey: "social.github" },
   { labelPatterns: [/portfolio/i, /personal.?website/i, /^website$/i], profileKey: "social.portfolio" },
   { labelPatterns: [/twitter/i, /x\.com/i, /profiletwitter/i], profileKey: "social.twitter" },
+  // Pronouns
+  { labelPatterns: [/pronoun/i, /they\/them/i], profileKey: "pronouns" },
   // Skills
   { labelPatterns: [/skill/i, /language/i, /languageskills/i], profileKey: "skills" },
   // Work / Experience
+  { labelPatterns: [/current.?company/i, /current.?employer/i], profileKey: "currentCompany" },
   { labelPatterns: [/company/i, /employer/i, /organisation/i, /organization/i], profileKey: "experience.0.company" },
   { labelPatterns: [/title/i, /position/i, /job.?title/i], profileKey: "experience.0.title" },
   // Other
@@ -55,7 +58,7 @@ export const FIELD_MAPPINGS: FieldMapping[] = [
   { labelPatterns: [/compensation/i, /salary.?expect/i, /desired.?comp/i], profileKey: "desiredCompensation" },
   { labelPatterns: [/current.?location/i, /where.*(you|are).*locat/i], profileKey: "currentLocation" },
   { labelPatterns: [/notice.?period/i, /notice.?duration/i], profileKey: "noticePeriod" },
-  { labelPatterns: [/work.?auth/i, /entitled.*work/i, /eligible.*work/i, /legally.*work/i, /legally.*authoriz/i], profileKey: "workAuthorization" },
+  { labelPatterns: [/authorized.*work/i, /work.?auth/i, /entitled.*work/i, /eligible.*work/i, /legally.*work/i, /legally.*authoriz/i], profileKey: "workAuthorization" },
   { labelPatterns: [/visa.?sponsor/i, /sponsorship/i], profileKey: "requiredVisaSponsorship" },
   // EEO
   { labelPatterns: [/gender/i, /sex/i], profileKey: "gender" },
@@ -114,7 +117,9 @@ export function getLabelText(el: HTMLElement): string {
   // 6) nearest form-group container's label/span
   const container = el.closest('[class*="field"], [class*="form-group"], [class*="input"]');
   if (container) {
-    const inner = container.querySelector("label, span[class*='label'], [class*='label']");
+    const inner = container.querySelector(
+      "label, span[class*='label'], [class*='label'], [class*='question-title'], [class*='field-label']",
+    );
     if (inner) return inner.textContent?.trim() ?? "";
   }
   // 7) for radio/checkbox, look for fieldset > legend (the question text)
@@ -128,6 +133,19 @@ export function getLabelText(el: HTMLElement): string {
   // 8) name attribute (React/Next.js apps like RecruitCRM)
   const nameAttr = el.getAttribute("name");
   if (nameAttr && nameAttr.length >= 2 && !nameAttr.startsWith("_")) return nameAttr;
+  // 9) preceding sibling label (React forms without for/id)
+  if (el.previousElementSibling?.matches("label")) {
+    return el.previousElementSibling.textContent?.trim() ?? "";
+  }
+  // 10) walk up to find a container with a label (React forms with nested wrappers)
+  let walk = el.parentElement;
+  let depth = 0;
+  while (walk && walk !== document.body && depth < 5) {
+    const nearLabel = walk.querySelector(":scope > label");
+    if (nearLabel) return nearLabel.textContent?.trim() ?? "";
+    walk = walk.parentElement;
+    depth++;
+  }
   return "";
 }
 

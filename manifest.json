@@ -27,8 +27,7 @@
     }
   ],
   "background": {
-    "scripts": ["background.js"],
-    "type": "module"
+    "scripts": ["background.js"]
   },
   "action": {
     "default_popup": "popup.html",
@@ -41,6 +40,9 @@
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline';"
   },
   "icons": {
     "48": "assets/icon-48.png",

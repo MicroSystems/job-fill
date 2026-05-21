@@ -236,6 +236,34 @@ export function ProfileForm({ profileName: initialName }: { profileName?: string
       </section>
 
       <section>
+        <h2>Pronouns</h2>
+        <div className="field-row">
+          <label className="wide">
+            Your pronouns
+            <input
+              value={profile.pronouns ?? ""}
+              onChange={(e) => update("pronouns", e.target.value)}
+              placeholder="e.g. they/them/theirs"
+            />
+          </label>
+        </div>
+      </section>
+
+      <section>
+        <h2>Current Company</h2>
+        <div className="field-row">
+          <label className="wide">
+            Your current or most recent employer
+            <input
+              value={profile.currentCompany ?? ""}
+              onChange={(e) => update("currentCompany", e.target.value)}
+              placeholder="e.g. Acme Corp"
+            />
+          </label>
+        </div>
+      </section>
+
+      <section>
         <h2>Notice Period</h2>
         <div className="field-row">
           <label className="wide">

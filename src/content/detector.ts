@@ -15,6 +15,13 @@ export function detectPlatform(url: string, doc: Document): Platform {
   }
 
   if (
+    hostname.includes("ats.rippling.com") ||
+    hostname.includes("rippling.com") && /\/jobs\/\d+\/apply/.test(url)
+  ) {
+    return "rippling";
+  }
+
+  if (
     hostname.includes("myworkdayjobs") ||
     hostname.includes("wd5.myworkdayjobs") ||
     hostname.includes("workday") ||
@@ -45,8 +52,12 @@ export function detectPlatform(url: string, doc: Document): Platform {
   if (
     hostname.includes("jobs.ashbyhq.com") ||
     hostname.includes("ashbyhq") ||
+    /[?&]ashby_jid=/.test(url) ||
     doc.querySelector(".ashby-application-form") ||
-    doc.querySelector('[data-test-id="ashby-application-form"]')
+    doc.querySelector(".ashby-application-form-container") ||
+    doc.querySelector('[data-test-id="ashby-application-form"]') ||
+    doc.querySelector('[data-testid="ashby-application-form"]') ||
+    doc.querySelector("#ashby-app-embed")
   ) {
     return "ashby";
   }

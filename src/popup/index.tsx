@@ -299,5 +299,12 @@ function HistoryPanel() {
   );
 }
 
-const root = createRoot(document.getElementById("root")!);
-root.render(<App />);
+console.log("[jobfill-popup] popup script loaded");
+try {
+  const root = createRoot(document.getElementById("root")!);
+  root.render(<App />);
+  console.log("[jobfill-popup] React rendered");
+} catch (e) {
+  console.error("[jobfill-popup] render error:", e);
+  document.getElementById("root")!.textContent = "Error: " + (e as Error).message;
+}

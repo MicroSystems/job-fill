@@ -63,9 +63,11 @@ export interface Profile {
   disabilityStatus?: string;
   currentLocation?: string;
   noticePeriod?: string;
+  pronouns?: string;
+  currentCompany?: string;
 }
 
-export type Platform = "workday" | "greenhouse" | "lever" | "ashby" | "smartrecruiters" | "workable" | "generic";
+export type Platform = "workday" | "greenhouse" | "lever" | "ashby" | "smartrecruiters" | "workable" | "rippling" | "generic";
 
 export interface FieldMapping {
   profileKey: string;
