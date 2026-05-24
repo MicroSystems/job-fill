@@ -4,14 +4,9 @@ import { autoApply } from "./autoapply";
 import { getProfile, getResume, addAppliedJob } from "../storage";
 
 let platform: ReturnType<typeof detectPlatform> | null = null;
-let _detectCount = 0;
 
 function detectAndStore(): void {
-  _detectCount++;
-  const url = window.location.href;
-  const hostname = new URL(url).hostname;
-  platform = detectPlatform(url, document);
-  console.log(`[jobfill] detect #${_detectCount} url=${url} hostname=${hostname} => platform=${platform}`);
+  platform = detectPlatform(window.location.href, document);
 }
 
 async function loadProfile(): Promise<{ profileObj: Record<string, any>; profile: any } | null> {

@@ -1,6 +1,7 @@
 import type { FillResponse } from "../types";
 import { genericDriver } from "./drivers/generic";
 import { greenhouseDriver } from "./drivers/greenhouse";
+import { mygreenhouseDriver } from "./drivers/mygreenhouse";
 import { leverDriver } from "./drivers/lever";
 import { ashbyDriver } from "./drivers/ashby";
 import { workdayDriver } from "./drivers/workday";
@@ -19,6 +20,7 @@ export interface FillDriver {
 const drivers: Record<string, FillDriver> = {
   generic: genericDriver,
   greenhouse: greenhouseDriver,
+  mygreenhouse: mygreenhouseDriver,
   lever: leverDriver,
   ashby: ashbyDriver,
   workday: workdayDriver,

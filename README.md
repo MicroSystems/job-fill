@@ -2,6 +2,13 @@
 
 Auto-fills job applications on Workday, Greenhouse, Lever, Ashby, SmartRecruiters, and more.
 
+## AI Coding Guidelines
+
+Karpathy-inspired behavioral guidelines (Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution) are installed in two formats:
+
+- **`CLAUDE.md`** — per-project file for Claude Code and compatible tools
+- **`.opencode/skills/karpathy-guidelines/SKILL.md`** — loadable skill for OpenCode agents
+
 ## Quick Start
 
 ```bash

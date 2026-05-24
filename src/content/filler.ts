@@ -1,4 +1,5 @@
 import type { FillResponse } from "../types";
+import { EEO_FIELD_MAPPINGS } from "../patterns";
 
 // ── Field Mapping ──────────────────────────────────────────────────────────
 
@@ -58,13 +59,8 @@ export const FIELD_MAPPINGS: FieldMapping[] = [
   { labelPatterns: [/compensation/i, /salary.?expect/i, /desired.?comp/i], profileKey: "desiredCompensation" },
   { labelPatterns: [/current.?location/i, /where.*(you|are).*locat/i], profileKey: "currentLocation" },
   { labelPatterns: [/notice.?period/i, /notice.?duration/i], profileKey: "noticePeriod" },
-  { labelPatterns: [/authorized.*work/i, /work.?auth/i, /entitled.*work/i, /eligible.*work/i, /legally.*work/i, /legally.*authoriz/i], profileKey: "workAuthorization" },
-  { labelPatterns: [/visa.?sponsor/i, /sponsorship/i], profileKey: "requiredVisaSponsorship" },
-  // EEO
-  { labelPatterns: [/gender/i, /sex/i], profileKey: "gender" },
-  { labelPatterns: [/race/i, /ethnicity/i], profileKey: "race" },
-  { labelPatterns: [/veteran/i, /military/i], profileKey: "veteranStatus" },
-  { labelPatterns: [/disability/i, /disabled/i], profileKey: "disabilityStatus" },
+  // Work Auth & EEO (shared patterns)
+  ...EEO_FIELD_MAPPINGS,
 ];
 
 // ── Profile Resolution ─────────────────────────────────────────────────────
@@ -318,7 +314,7 @@ function fillInputElement(input: HTMLInputElement | HTMLSelectElement | HTMLText
   }
 }
 
-// ── Legacy Compat (kept for drivers that still use them) ───────────────────
+// ── Legacy helpers ─────────────────────────────────────────────────────────
 
 export function findField(labelPattern: RegExp, tagName = "input"): HTMLElement | null {
   const labels = document.querySelectorAll("label");
@@ -340,75 +336,4 @@ export function findField(labelPattern: RegExp, tagName = "input"): HTMLElement 
     if (labelPattern.test(placeholder) || labelPattern.test(ariaLabel)) return inp;
   }
   return null;
-}
-
-export function findFields(labelPattern: RegExp, tagName = "input"): HTMLElement[] {
-  const results: HTMLElement[] = [];
-  const labels = document.querySelectorAll("label");
-  for (const label of labels) {
-    if (labelPattern.test(label.textContent ?? "")) {
-      const forId = label.getAttribute("for");
-      if (forId) {
-        const el = document.getElementById(forId);
-        if (el && el.matches(tagName)) results.push(el as HTMLElement);
-      }
-      const inner = label.querySelectorAll(tagName);
-      inner.forEach((el) => results.push(el as HTMLElement));
-    }
-  }
-  return results;
-}
-
-export function findBySelector(selector: string): HTMLElement | null {
-  return document.querySelector(selector);
-}
-
-export function findVisibleField(labelPattern: RegExp, tagName = "input"): HTMLElement | null {
-  const el = findField(labelPattern, tagName);
-  if (el && isVisible(el)) return el;
-  if (el && !el.closest('[style*="display: none"], [style*="visibility: hidden"]')) return el;
-  return null;
-}
-
-export function findAllInputs(): NodeListOf<HTMLInputElement> {
-  return document.querySelectorAll<HTMLInputElement>(
-    "input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=reset])",
-  );
-}
-
-export function findFirstQuestionField(): [HTMLElement, string] | null {
-  const inputs = findAllInputs();
-  for (const inp of inputs) {
-    if (inp.offsetParent === null) continue;
-    if (inp.type === "text" || inp.type === "textarea" || inp.tagName === "TEXTAREA") {
-      const labelText = getLabelText(inp);
-      if (labelText && !isProfileField(labelText)) {
-        return [inp, labelText];
-      }
-    }
-  }
-  const textareas = document.querySelectorAll<HTMLTextAreaElement>("textarea");
-  for (const ta of textareas) {
-    if (ta.offsetParent === null) continue;
-    const labelText = getLabelText(ta);
-    if (labelText && !isProfileField(labelText)) {
-      return [ta, labelText];
-    }
-  }
-  return null;
-}
-
-export function getLabelTextForElement(el: HTMLElement): string {
-  return getLabelText(el);
-}
-
-export function isProfileField(labelText: string): boolean {
-  const profileKeywords = [
-    "first name", "last name", "given name", "family name",
-    "email", "phone", "mobile", "address", "city", "state",
-    "zip", "postal", "country", "linkedin", "portfolio",
-    "website", "github", "resume", "cv", "cover letter",
-  ];
-  const lower = labelText.toLowerCase();
-  return profileKeywords.some((k) => lower.includes(k));
 }

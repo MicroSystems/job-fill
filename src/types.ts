@@ -67,7 +67,7 @@ export interface Profile {
   currentCompany?: string;
 }
 
-export type Platform = "workday" | "greenhouse" | "lever" | "ashby" | "smartrecruiters" | "workable" | "rippling" | "generic";
+export type Platform = "workday" | "greenhouse" | "mygreenhouse" | "lever" | "ashby" | "smartrecruiters" | "workable" | "rippling" | "generic";
 
 export interface FieldMapping {
   profileKey: string;
