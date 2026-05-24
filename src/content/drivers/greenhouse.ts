@@ -2,8 +2,6 @@ import type { FillResponse } from "../../types";
 import type { FillDriver } from "../driver";
 import {
   fillAllFields,
-  findField,
-  setNativeValue,
   selectOption,
   uploadFile,
   isVisible,
@@ -38,12 +36,7 @@ export const greenhouseDriver: FillDriver = {
       const fileInput = form.querySelector<HTMLInputElement>('input[type="file"]');
       if (fileInput && isVisible(fileInput)) {
         try {
-          const bytes = Uint8Array.from(atob(profileRaw.resume.data), (c) => c.charCodeAt(0));
-          const file = new File([bytes], profileRaw.resume.filename, { type: "application/pdf" });
-          const dt = new DataTransfer();
-          dt.items.add(file);
-          fileInput.files = dt.files;
-          fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+          uploadFile(fileInput, profileRaw.resume.data, profileRaw.resume.filename);
           result.filled++;
         } catch (e) {
           result.errors.push(`Resume upload: ${(e as Error).message}`);

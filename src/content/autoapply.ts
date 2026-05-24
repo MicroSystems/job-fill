@@ -2,7 +2,7 @@ import type { FillResponse, SubmitResponse } from "../types";
 import { fill } from "./driver";
 import { generateAnswerForQuestion } from "./ai";
 import { getConfig, getProfile, isJobApplied } from "../storage";
-import { clickElement, isVisible, findButton } from "./filler";
+import { clickElement, isVisible, findButton, getLabelText } from "./filler";
 
 interface ButtonFinder {
   next: RegExp[];
@@ -142,7 +142,7 @@ async function handleCustomQuestions(
     if ((inp as HTMLInputElement).value) continue;
     if (inp.hasAttribute("data-jobfill-filled")) continue;
 
-    const labelText = getLabelTextForInp(inp);
+    const labelText = getLabelText(inp);
     if (!labelText) continue;
     if (isProfileFieldLabel(labelText)) continue;
 
@@ -188,23 +188,6 @@ async function handleCustomQuestions(
   }
 }
 
-function getLabelTextForInp(el: HTMLElement): string {
-  const id = el.id;
-  if (id) {
-    const label = document.querySelector(`label[for="${id}"]`);
-    if (label) return label.textContent?.trim() ?? "";
-  }
-  const parent = el.closest("label");
-  if (parent) return parent.textContent?.trim() ?? "";
-  const prev = el.closest('[class*="field"], [class*="form-group"], [class*="form-item"]')
-    ?.querySelector('label, .label, [class*="label"]');
-  if (prev) return prev.textContent?.trim() ?? "";
-  const placeholder = (el as HTMLInputElement).placeholder ?? "";
-  if (placeholder) return placeholder;
-  const aria = el.getAttribute("aria-label") ?? "";
-  if (aria) return aria;
-  return "";
-}
 
 const profileFieldLabels = new Set([
   "first name", "last name", "given name", "family name", "surname",

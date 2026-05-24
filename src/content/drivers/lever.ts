@@ -14,20 +14,6 @@ function qs<T extends HTMLElement = HTMLElement>(sel: string): T | null {
   return document.querySelector<T>(sel);
 }
 
-function getVal(obj: any, path: string): string | undefined {
-  const parts = path.split(".");
-  let v: any = obj;
-  for (const p of parts) {
-    if (v == null) return undefined;
-    if (/^\d+$/.test(p)) {
-      v = Array.isArray(v) ? v[parseInt(p)] : undefined;
-    } else {
-      v = v[p];
-    }
-  }
-  return v != null ? String(v) : undefined;
-}
-
 export const leverDriver: FillDriver = {
   submitSelector:
     '[data-qa*="submit"], [data-qa*="Submit"], button[type="submit"]',
@@ -59,8 +45,8 @@ export const leverDriver: FillDriver = {
     // ── Lever-specific field fills (data-qa / name selectors) ──────────────
 
     // name
-    const given = getVal(p, "name.given");
-    const family = getVal(p, "name.family");
+    const given = resolveProfileValue(p, "name.given");
+    const family = resolveProfileValue(p, "name.family");
     if (given) {
       const el =
         qs('[data-qa="name-input"]') ??
@@ -73,7 +59,7 @@ export const leverDriver: FillDriver = {
     }
 
     // email
-    const email = getVal(p, "email");
+    const email = resolveProfileValue(p, "email");
     if (email) {
       const el =
         qs('[data-qa="email-input"]') ??
@@ -86,7 +72,7 @@ export const leverDriver: FillDriver = {
     }
 
     // phone
-    const phone = getVal(p, "phone.national");
+    const phone = resolveProfileValue(p, "phone.national");
     if (phone) {
       const el =
         qs('[data-qa="phone-input"]') ??
@@ -99,7 +85,7 @@ export const leverDriver: FillDriver = {
     }
 
     // current company (org)
-    const company = getVal(p, "experience.0.company");
+    const company = resolveProfileValue(p, "experience.0.company");
     if (company) {
       const el =
         qs('[data-qa="org-input"]') ??
@@ -112,8 +98,8 @@ export const leverDriver: FillDriver = {
     }
 
     // location (city + state)
-    const city = getVal(p, "address.city");
-    const state = getVal(p, "address.state");
+    const city = resolveProfileValue(p, "address.city");
+    const state = resolveProfileValue(p, "address.state");
     if (city) {
       const val = state ? `${city}, ${state}` : city;
       const el =
@@ -134,7 +120,7 @@ export const leverDriver: FillDriver = {
       Twitter: "social.twitter",
     };
     for (const [site, path] of Object.entries(urlFields)) {
-      const val = getVal(p, path);
+      const val = resolveProfileValue(p, path);
       if (val) {
         const el =
           qs(`[name="urls[${site}]"]`) ?? qs(`[data-qa="${site.toLowerCase()}-input"]`);
@@ -146,7 +132,7 @@ export const leverDriver: FillDriver = {
     }
 
     // cover letter
-    const cover = getVal(p, "coverLetter");
+    const cover = resolveProfileValue(p, "coverLetter");
     if (cover) {
       const el =
         qs('[data-qa="cover-letter-input"]') ??
@@ -253,15 +239,15 @@ export const leverDriver: FillDriver = {
       }
       // compensation expectations — use profile.desiredCompensation
       if (!val && /compensation|salary|expect/i.test(qText)) {
-        val = getVal(p, "desiredCompensation");
+        val = resolveProfileValue(p, "desiredCompensation");
       }
       // current location
       if (!val && /where.*(you|are).*locat|current.*locat/i.test(qText)) {
-        val = getVal(p, "currentLocation");
+        val = resolveProfileValue(p, "currentLocation");
       }
       // notice period
       if (!val && /notice.?period|notice.?duration/i.test(qText)) {
-        val = getVal(p, "noticePeriod");
+        val = resolveProfileValue(p, "noticePeriod");
       }
       if (val) {
         setNativeValue(inp, val as string);
@@ -338,7 +324,7 @@ export const leverDriver: FillDriver = {
       for (const eeo of eeoSections) {
         if (eeo.pattern.test(questionText)) {
           if (answeredEEO.has(eeo.key)) break;
-          const val = getVal(p, eeo.key);
+          const val = resolveProfileValue(p, eeo.key);
           if (val && inp.value.toLowerCase() === val.toLowerCase()) {
             setCheckbox(inp, true);
             result.filled++;
@@ -387,7 +373,7 @@ export const leverDriver: FillDriver = {
       ];
       for (const eeo of eeoSections) {
         if (eeo.pattern.test(qText)) {
-          const val = getVal(p, eeo.key);
+          const val = resolveProfileValue(p, eeo.key);
           if (val) {
             for (const opt of sel.options) {
               if (opt.text.toLowerCase() === val.toLowerCase()) {

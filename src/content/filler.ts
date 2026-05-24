@@ -313,27 +313,3 @@ function fillInputElement(input: HTMLInputElement | HTMLSelectElement | HTMLText
     setNativeValue(input as HTMLElement, value);
   }
 }
-
-// ── Legacy helpers ─────────────────────────────────────────────────────────
-
-export function findField(labelPattern: RegExp, tagName = "input"): HTMLElement | null {
-  const labels = document.querySelectorAll("label");
-  for (const label of labels) {
-    if (labelPattern.test(label.textContent ?? "")) {
-      const forId = label.getAttribute("for");
-      if (forId) {
-        const el = document.getElementById(forId);
-        if (el && el.matches(tagName)) return el as HTMLElement;
-      }
-      const inner = label.querySelector(tagName);
-      if (inner) return inner as HTMLElement;
-    }
-  }
-  const inputs = document.querySelectorAll<HTMLElement>(tagName);
-  for (const inp of inputs) {
-    const placeholder = (inp as HTMLInputElement).placeholder ?? "";
-    const ariaLabel = inp.getAttribute("aria-label") ?? "";
-    if (labelPattern.test(placeholder) || labelPattern.test(ariaLabel)) return inp;
-  }
-  return null;
-}
