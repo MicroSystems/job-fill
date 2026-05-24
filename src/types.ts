@@ -69,6 +69,18 @@ export interface Profile {
 
 export type Platform = "workday" | "greenhouse" | "mygreenhouse" | "lever" | "ashby" | "smartrecruiters" | "workable" | "rippling" | "generic";
 
+export interface FieldMapping {
+  profileKey: string;
+  selectors: string[];
+  type: "text" | "select" | "checkbox" | "radio" | "file" | "textarea";
+  transform?: (value: any) => any;
+}
+
+export interface FillRequest {
+  platform: Platform;
+  action: "autofill" | "autofill_all" | "autoapply";
+}
+
 export interface FillResponse {
   filled: number;
   skipped: number;
@@ -82,6 +94,15 @@ export interface SubmitResponse {
   confirmationText?: string;
 }
 
+export interface AutoApplyResult {
+  fill: FillResponse;
+  submit?: SubmitResponse;
+  jobUrl: string;
+  platform: Platform;
+  timestamp: number;
+  success: boolean;
+}
+
 export interface AppliedJob {
   url: string;
   platform: Platform;
@@ -90,6 +111,12 @@ export interface AppliedJob {
   timestamp: number;
   success: boolean;
 }
+
+export const STORE_KEYS = {
+  PROFILE: "jobfill_profile",
+  CONFIG: "jobfill_config",
+  APPLIED_JOBS: "jobfill_applied",
+} as const;
 
 export interface ExtensionConfig {
   aiProvider: "openai" | "anthropic" | "ollama" | "none";
