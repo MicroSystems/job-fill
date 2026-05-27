@@ -11,8 +11,8 @@
   --accent: #D97757;
   --accent-hover: #C46849;
   --accent-light: #E3DACC;
-  --header-bg: #141413;
-  --header-text: #FAF9F5;
+  --header-bg: #FFFFFF;
+  --header-text: #141413;
   --radius: 24px;
   --radius-sm: 8px;
 }
@@ -30,7 +30,7 @@
   --accent: #D97757;
   --accent-hover: #C46849;
   --accent-light: #4D4C48;
-  --header-bg: #0D0D0C;
+  --header-bg: #1c1917;
   --header-text: #FAF9F5;
 }
 
@@ -172,10 +172,6 @@ body {
   color: var(--text);
 }
 
-.icon-btn-danger:hover {
-  color: #BF4D43;
-  background: rgba(191, 77, 67, 0.1);
-}
 
 .detected-row {
   text-align: center;
@@ -190,37 +186,6 @@ body {
   font-weight: 500;
 }
 
-.icon-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--header-text);
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
-  border-color: rgba(255,255,255,0.15);
-}
-
-.icon-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: rgba(255,255,255,0.06);
-}
-
-.icon-btn-danger {
-  border-color: rgba(255,255,255,0.15);
-}
-
-.icon-btn-danger:hover {
-  border-color: #BF4D43;
-  color: #BF4D43;
-  background: rgba(191, 77, 67, 0.1);
-}
 
 .profile-selector-row {
   display: flex;
@@ -241,9 +206,9 @@ body {
   padding: 6px 8px;
   font-size: 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.06);
-  color: var(--header-text);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
   cursor: pointer;
   outline: none;
   min-width: 0;
@@ -279,8 +244,8 @@ body {
 }
 
 .tab:hover {
-  color: var(--header-text);
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  background: var(--bg-hover);
 }
 
 .tab.active {
@@ -501,21 +466,6 @@ textarea {
   padding: 16px 0 8px;
 }
 
-.platform-badge {
-  font-size: 12px;
-  color: var(--text-muted);
-  text-align: center;
-  padding: 12px;
-  background: var(--bg-card);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-}
-
-.platform-badge strong {
-  color: var(--accent);
-  text-transform: capitalize;
-  font-weight: 600;
-}
 
 .hint {
   font-size: 11px;
@@ -532,10 +482,6 @@ textarea {
   font-size: 12px;
 }
 
-.status {
-  font-size: 12px;
-  color: var(--text-muted);
-}
 
 .result {
   font-size: 12px;
@@ -545,10 +491,6 @@ textarea {
   margin-top: 8px;
   max-height: 200px;
   overflow: auto;
-  width: 100%;
-  white-space: pre-wrap;
-  border: 1px solid var(--border);
-  line-height: 1.5;
 }
 
 .resume-info {

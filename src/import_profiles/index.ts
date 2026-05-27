@@ -1,6 +1,9 @@
 import { importAllData } from "../storage";
 import type { ExportData } from "../types";
 
+const theme = localStorage.getItem("jf-theme") || "light";
+document.documentElement.setAttribute("data-theme", theme);
+
 const fileInput = document.getElementById("fileInput") as HTMLInputElement;
 const importBtn = document.getElementById("importBtn") as HTMLButtonElement;
 const statusEl = document.getElementById("status") as HTMLDivElement;
@@ -29,7 +32,8 @@ fileInput.addEventListener("change", async () => {
 
     statusEl.textContent = `Imported ${profileCount} profile${profileCount === 1 ? "" : "s"} successfully! You can close this tab.`;
     statusEl.className = "success";
-    importBtn.textContent = "Done";
+    importBtn.textContent = "Import Another";
+    importBtn.disabled = false;
   } catch (err) {
     statusEl.textContent = "Import failed: " + (err instanceof Error ? err.message : String(err));
     statusEl.className = "error";
