@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import type { ExtensionConfig } from "../types";
-import { getConfig, saveConfig } from "../storage";
+import type { ExtensionConfig, ExportData } from "../types";
+import { getConfig, saveConfig, exportAllData, importAllData } from "../storage";
 import "./App.css";
 
 type Theme = "light" | "dark";
@@ -15,6 +15,7 @@ const ALL_PLATFORMS = ["workday", "greenhouse", "lever", "ashby", "smartrecruite
 function OptionsApp() {
   const [config, setConfig] = React.useState<ExtensionConfig | null>(null);
   const [saved, setSaved] = React.useState(false);
+  const [importResult, setImportResult] = React.useState<string | null>(null);
   const [theme, setTheme] = React.useState<Theme>(getInitialTheme);
 
   React.useEffect(() => {
@@ -42,6 +43,42 @@ function OptionsApp() {
 
   const update = (key: keyof ExtensionConfig, value: any) => {
     setConfig((prev) => (prev ? { ...prev, [key]: value } : prev));
+  };
+
+  const handleExport = async () => {
+    try {
+      const data = await exportAllData();
+      const json = JSON.stringify(data, null, 2);
+      const url = "data:application/json;charset=utf-8," + encodeURIComponent(json);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `job-fill-profiles-${new Date().toISOString().slice(0, 10)}.json`;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("export failed:", err);
+      alert("Export failed. Check console for details.");
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("[import] change event, files:", e.target.files);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data: ExportData = JSON.parse(text);
+      const result = await importAllData(data);
+      setImportResult(`Imported ${result.count} profile(s)`);
+    } catch (err) {
+      console.log("[import] error:", err);
+      setImportResult("Import failed: " + String(err));
+    } finally {
+      setTimeout(() => setImportResult(null), 3000);
+    }
+    e.target.value = "";
   };
 
   const handleSave = async () => {
@@ -200,6 +237,33 @@ function OptionsApp() {
             </>
           )}
         </div>
+      </section>
+
+      <section>
+        <h2>Data Management</h2>
+        <p className="hint">
+          Export profiles to a JSON file for backup, or import from a previously exported file.
+        </p>
+        <div className="data-actions">
+          <button className="btn btn-secondary" onClick={handleExport}>
+            Export Profiles
+          </button>
+          <label className="btn btn-secondary" htmlFor="options-import-input">
+            Import Profiles
+          </label>
+          <input id="options-import-input" type="file" accept=".json" onChange={handleImport} style={{ display: "none" }} />
+        </div>
+        {importResult !== null && (
+          <p className="import-status">{importResult}</p>
+        )}
+        <label className="checkbox-line" style={{ marginTop: 12 }}>
+          <input
+            type="checkbox"
+            checked={config.autoSave}
+            onChange={(e) => update("autoSave", e.target.checked)}
+          />
+          Auto-save profiles to Downloads (<code>job-fill-profiles.json</code>)
+        </label>
       </section>
 
       <button className="btn btn-primary" onClick={handleSave}>

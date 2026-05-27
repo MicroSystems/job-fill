@@ -2,7 +2,38 @@ import {
   getProfile, getProfileNames, getCurrentProfileName, setCurrentProfileName,
   saveProfile, createProfile, deleteProfile,
   getConfig, saveConfig, defaultConfig, getAppliedJobs, clearAppliedJobs,
+  exportAllData,
 } from "./storage";
+
+let autoExportTimer: ReturnType<typeof setTimeout> | null = null;
+
+async function triggerAutoExport() {
+  if (autoExportTimer) clearTimeout(autoExportTimer);
+  autoExportTimer = setTimeout(async () => {
+    try {
+      const config = await getConfig();
+      if (!config.autoSave) return;
+      const data = await exportAllData();
+      const json = JSON.stringify(data, null, 2);
+      const url = "data:application/json;charset=utf-8," + encodeURIComponent(json);
+      await browser.downloads.download({
+        url,
+        filename: "job-fill-profiles.json",
+        saveAs: false,
+        conflictAction: "overwrite",
+      });
+    } catch (err) {
+      console.error("auto-export failed:", err);
+    }
+  }, 2000);
+}
+
+browser.storage.onChanged.addListener((changes, area) => {
+  if (area !== "local") return;
+  if (changes.jf_profiles || changes.jf_resumes) {
+    triggerAutoExport();
+  }
+});
 
 browser.runtime.onInstalled.addListener(async () => {
   const config = await getConfig();
@@ -17,9 +48,15 @@ browser.runtime.onMessage.addListener(async (msg: any, _sender) => {
     return { profile };
   }
   if (msg.type === "get-profile-names") {
-    const names = await getProfileNames();
-    const current = await getCurrentProfileName();
-    return { names, current };
+    try {
+      const names = await getProfileNames();
+      const current = await getCurrentProfileName();
+      console.log("bg get-profile-names:", { names, current });
+      return { names, current };
+    } catch (err) {
+      console.error("bg get-profile-names error:", err);
+      return { names: [], current: "" };
+    }
   }
   if (msg.type === "set-current-profile") {
     await setCurrentProfileName(msg.name);

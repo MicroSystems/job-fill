@@ -118,6 +118,14 @@ export const STORE_KEYS = {
   APPLIED_JOBS: "jobfill_applied",
 } as const;
 
+export interface ExportData {
+  version: number;
+  exportedAt: string;
+  currentProfile: string;
+  profiles: Record<string, Profile>;
+  resumes: Record<string, { filename: string; data: string }>;
+}
+
 export interface ExtensionConfig {
   aiProvider: "openai" | "anthropic" | "ollama" | "none";
   aiApiKey: string;
@@ -128,4 +136,5 @@ export interface ExtensionConfig {
   autoApplyEnabled: boolean;
   autoApplyMaxSteps: number;
   aiAnswerCustomQuestions: boolean;
+  autoSave: boolean;
 }

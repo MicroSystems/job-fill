@@ -10,6 +10,7 @@ module.exports = {
     profile: "./src/profile/index.tsx",
     options: "./src/options/index.tsx",
     upload: "./src/upload/index.ts",
+    import_profiles: "./src/import_profiles/index.ts",
   },
   output: {
     path: path.resolve(__dirname, "dist"),
@@ -65,6 +66,11 @@ module.exports = {
       template: "./src/upload/index.html",
       filename: "upload.html",
       chunks: ["upload"],
+    }),
+    new HtmlWebpackPlugin({
+      template: "./src/import_profiles/index.html",
+      filename: "import_profiles.html",
+      chunks: ["import_profiles"],
     }),
   ],
 };

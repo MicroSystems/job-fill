@@ -1,5 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { exportAllData } from "../storage";
 import "./App.css";
 
 type Theme = "light" | "dark";
@@ -15,17 +16,37 @@ function App() {
   const [currentProfile, setCurrentProfile] = React.useState("");
   const [platform, setPlatform] = React.useState<string>("");
   const [deleteTarget, setDeleteTarget] = React.useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  const menuBtnRef = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("jf-theme", theme);
   }, [theme]);
 
+  React.useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuOpen && menuRef.current && !menuRef.current.contains(e.target as Node) && !menuBtnRef.current?.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [menuOpen]);
+
   const loadProfiles = async () => {
-    const resp = await browser.runtime.sendMessage({ type: "get-profile-names" });
-    if (resp) {
-      setProfileNames(resp.names ?? []);
-      setCurrentProfile(resp.current ?? "");
+    try {
+      const resp = await browser.runtime.sendMessage({ type: "get-profile-names" });
+      console.log("loadProfiles response:", resp);
+      if (resp) {
+        setProfileNames(resp.names ?? []);
+        setCurrentProfile(resp.current ?? "");
+      } else {
+        console.warn("loadProfiles: no response from background");
+      }
+    } catch (err) {
+      console.error("loadProfiles error:", err);
     }
   };
 
@@ -50,6 +71,7 @@ function App() {
   };
 
   const handleAddProfile = async () => {
+    setMenuOpen(false);
     const name = prompt("Enter profile name:");
     if (!name || !name.trim()) return;
     await browser.runtime.sendMessage({ type: "create-profile", name: name.trim() });
@@ -57,6 +79,7 @@ function App() {
   };
 
   const handleDeleteProfile = async () => {
+    setMenuOpen(false);
     if (profileNames.length <= 1) {
       alert("Cannot delete the last profile.");
       return;
@@ -72,6 +95,34 @@ function App() {
   };
 
   const cancelDelete = () => setDeleteTarget(null);
+
+  const handleExport = async () => {
+    setMenuOpen(false);
+    try {
+      const data = await exportAllData();
+      const json = JSON.stringify(data, null, 2);
+      const url = "data:application/json;charset=utf-8," + encodeURIComponent(json);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `job-fill-profiles-${new Date().toISOString().slice(0, 10)}.json`;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("Export failed:", err);
+    }
+  };
+
+  const handleImport = () => {
+    setMenuOpen(false);
+    browser.tabs.create({ url: "import_profiles.html" });
+  };
+
+  const handleEdit = () => {
+    setMenuOpen(false);
+    browser.runtime.sendMessage({ type: "open-profile" });
+  };
 
   return (
     <div className="popup">
@@ -99,16 +150,57 @@ function App() {
                 </svg>
               )}
             </button>
-            <button
-              className="icon-btn"
-              title="Edit Profile"
-              onClick={() => browser.runtime.sendMessage({ type: "open-profile" })}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-            </button>
+            <div className="menu-wrapper">
+              <button className="icon-btn" ref={menuBtnRef} onClick={() => setMenuOpen(!menuOpen)} title="More">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="1" />
+                  <circle cx="12" cy="5" r="1" />
+                  <circle cx="12" cy="19" r="1" />
+                </svg>
+              </button>
+              {menuOpen && (
+                <div className="menu-dropdown" ref={menuRef}>
+                  <button className="menu-item" onClick={handleAddProfile}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    Add Profile
+                  </button>
+                  <button className="menu-item" onClick={handleEdit}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                    Edit Profile
+                  </button>
+                  <button className="menu-item menu-item-danger" onClick={handleDeleteProfile}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    Delete Profile
+                  </button>
+                  <div className="menu-divider" />
+                  <button className="menu-item" onClick={handleExport}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Export
+                  </button>
+                  <button className="menu-item" onClick={handleImport}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    Import
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -127,18 +219,6 @@ function App() {
               <option key={n} value={n}>{n}</option>
             ))}
           </select>
-          <button className="icon-btn" title="Add Profile" onClick={handleAddProfile}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </button>
-          <button className="icon-btn" title="Delete Profile" onClick={handleDeleteProfile}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-          </button>
         </div>
 
         <nav className="tab-bar">

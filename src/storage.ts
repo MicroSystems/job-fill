@@ -1,4 +1,4 @@
-import type { Profile, ExtensionConfig, AppliedJob, Platform } from "./types";
+import type { Profile, ExtensionConfig, AppliedJob, Platform, ExportData } from "./types";
 
 const KEYS = {
   PROFILES: "jf_profiles",
@@ -156,6 +156,7 @@ export function defaultConfig(): ExtensionConfig {
     autoApplyEnabled: true,
     autoApplyMaxSteps: 10,
     aiAnswerCustomQuestions: false,
+    autoSave: true,
   };
 }
 
@@ -171,6 +172,37 @@ export async function addAppliedJob(job: AppliedJob): Promise<void> {
 
 export async function clearAppliedJobs(): Promise<void> {
   await remove(KEYS.APPLIED_JOBS);
+}
+
+export async function exportAllData(): Promise<ExportData> {
+  const profiles = (await get<Record<string, Profile>>(KEYS.PROFILES)) ?? {};
+  const resumes = (await get<Record<string, { filename: string; data: string }>>(KEYS.RESUMES)) ?? {};
+  const currentProfile = (await get<string>(KEYS.CURRENT_PROFILE)) ?? "";
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    currentProfile,
+    profiles,
+    resumes,
+  };
+}
+
+export async function importAllData(data: ExportData): Promise<{ count: number }> {
+  if (!data || !data.profiles || typeof data.profiles !== "object") {
+    throw new Error("Invalid import data: missing profiles");
+  }
+  const count = Object.keys(data.profiles).length;
+  await Promise.all([
+    set(KEYS.PROFILES, data.profiles),
+    set(KEYS.RESUMES, data.resumes ?? {}),
+  ]);
+  if (data.currentProfile) {
+    const names = Object.keys(data.profiles);
+    if (names.includes(data.currentProfile)) {
+      await set(KEYS.CURRENT_PROFILE, data.currentProfile);
+    }
+  }
+  return { count };
 }
 
 export async function isJobApplied(url: string): Promise<boolean> {

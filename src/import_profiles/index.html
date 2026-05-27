@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=400" />
+  <title>Import Profiles</title>
+  <style>
+    :root {
+      --bg: #FAF9F5;
+      --bg-card: #FFFFFF;
+      --text: #141413;
+      --text-muted: #5E5D59;
+      --border: #E8E6DC;
+      --accent: #D97757;
+      --error: #BF4D43;
+      --focus: #2C84DB;
+    }
+    [data-theme="dark"] {
+      --bg: #1c1917;
+      --bg-card: #292524;
+      --text: #FAF9F5;
+      --text-muted: #A8A29E;
+      --border: #44403C;
+      --accent: #F59E0B;
+      --error: #EF4444;
+      --focus: #60A5FA;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: #141413;
+      color: #FAF9F5;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-family: inherit;
+      line-height: 24px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-primary:hover {
+      background: #30302E;
+      color: #FFFFFF;
+    }
+    .btn-primary:active {
+      background: #141413;
+      color: var(--accent);
+    }
+    .btn-primary:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 4px;
+    }
+    #status {
+      margin-top: 24px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .success { color: #788C5D; }
+    .error { color: var(--error); }
+    #fileInput {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Import Profiles</h1>
+    <p>Select a .json file exported from Job Fill to restore your profiles.</p>
+    <button type="button" class="btn-primary" id="importBtn">Choose File</button>
+    <input type="file" id="fileInput" accept=".json" />
+    <div id="status"></div>
+  </div>
+  <script src="import_profiles.js"></script>
+</body>
+</html>

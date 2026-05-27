@@ -1,6 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
-  <rect width="96" height="96" rx="18" fill="#1a1a2e"/>
-  <path d="M26 30h44v40H26z" fill="none" stroke="#fff" stroke-width="3.5" rx="3"/>
-  <path d="M26 38h44M34 30v-5a4 4 0 014-4h20a4 4 0 014 4v5" stroke="#fff" stroke-width="3.5" fill="none"/>
-  <path d="M42 50l4 4 8-10" stroke="#4ade80" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none">
+  <defs>
+    <mask id="m">
+      <rect width="96" height="96" fill="white"/>
+      <rect x="20" y="16" width="56" height="64" rx="8" fill="black"/>
+    </mask>
+  </defs>
+  <rect x="20" y="44" width="56" height="36" rx="6" fill="#fbbf24"/>
+  <rect width="96" height="96" rx="16" fill="#d97706" mask="url(#m)"/>
 </svg>

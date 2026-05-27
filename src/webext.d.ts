@@ -49,5 +49,17 @@ declare namespace browser {
       function set(items: Record<string, any>): Promise<void>;
       function remove(keys: string | string[]): Promise<void>;
     }
+    const onChanged: {
+      addListener(cb: (changes: Record<string, any>, area: string) => void): void;
+    };
+  }
+  namespace downloads {
+    interface DownloadOptions {
+      url: string;
+      filename?: string;
+      saveAs?: boolean;
+      conflictAction?: "overwrite" | "uniquify" | "prompt";
+    }
+    function download(options: DownloadOptions): Promise<number>;
   }
 }
