@@ -50,7 +50,7 @@ body {
   font-size: 15px;
   color: var(--text);
   background: var(--bg);
-  width: 560px;
+  width: 420px;
   min-height: 200px;
   margin: 0 auto;
   -webkit-font-smoothing: antialiased;
@@ -147,6 +147,15 @@ body {
   background: rgba(191, 77, 67, 0.08);
 }
 
+.menu-item-disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.menu-item-disabled:hover {
+  background: none;
+}
+
 .menu-divider {
   height: 1px;
   background: var(--border);
@@ -222,6 +231,11 @@ body {
 .profile-select option {
   background: var(--bg-card);
   color: var(--text);
+}
+
+.profile-select:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .tab-bar {
@@ -641,6 +655,23 @@ input[type="checkbox"] {
   font-size: 12px !important;
   color: var(--text-muted) !important;
   margin-bottom: 24px !important;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--bg-input);
+  color: var(--text);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.modal-input:focus {
+  border-color: var(--accent);
 }
 
 .modal-actions {
