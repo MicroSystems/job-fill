@@ -123,7 +123,7 @@ body {
   background: none;
   border: none;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text);
   cursor: pointer;
   font-family: inherit;
@@ -387,8 +387,8 @@ textarea {
 }
 
 .btn-primary {
-  background: #141413;
-  color: #FAF9F5;
+  background: #D97757;
+  color: #FFFFFF;
   width: 100%;
   padding: 12px 24px;
   font-size: 15px;
@@ -398,13 +398,13 @@ textarea {
 }
 
 .btn-primary:hover {
-  background: #30302E;
+  background: #C46849;
   color: #FFFFFF;
 }
 
 .btn-primary:active {
-  background: #141413;
-  color: #D97757;
+  background: #D97757;
+  color: #FFFFFF;
 }
 
 .btn-primary:focus-visible {
@@ -413,28 +413,33 @@ textarea {
 }
 
 .btn-secondary {
-  background: #FAF9F5;
-  color: #141413;
+  background: #D97757;
+  color: #FFFFFF;
   width: 100%;
-  padding: 8px 16px;
+  padding: 12px 24px;
   font-size: 15px;
   font-weight: 400;
-  border-radius: 8px;
-  border: 1px solid #E8E6DC;
+  border-radius: 12px;
   line-height: 24px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
 }
 
 .btn-secondary:hover {
-  background: #E8E6DC;
-  border-color: #5E5D59;
+  background: #C46849;
+  color: #FFFFFF;
 }
 
 .btn-secondary:active {
-  background: #E3DACC;
+  background: #D97757;
+  color: #FFFFFF;
 }
 
 .btn-secondary:focus-visible {
   outline: 2px solid #2C84DB;
+  outline-offset: 4px;
 }
 
 .btn-small {
@@ -468,7 +473,7 @@ textarea {
 
 
 .hint {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   text-align: center;
   line-height: 1.4;
@@ -557,7 +562,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .badge {
@@ -591,7 +596,7 @@ textarea {
 .timestamp {
   color: var(--text-muted);
   margin-left: auto;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 /* --- Select / Checkbox accent --- */

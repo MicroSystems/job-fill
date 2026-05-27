@@ -81,28 +81,28 @@ Claude's design system embodies a refined, modern aesthetic grounded in develope
 ### Buttons
 
 **Primary Button (Hero CTA)**
-- Background: `#141413`
-- Text Color: `#FAF9F5`
+- Background: `#D97757` (Terracotta)
+- Text Color: `#FFFFFF`
 - Padding: `12px 24px`
 - Font: Anthropic Sans, `15px`, weight 400, line height `24px`
 - Border Radius: `12px`
 - Border: None
 - Box Shadow: None
-- Hover State: Background `#30302E`, text `#FFFFFF`
-- Active State: Background `#141413`, text `#D97757`
+- Hover State: Background `#C46849` (Warm Rust), text `#FFFFFF`
+- Active State: Background `#D97757`, text `#FFFFFF`
 - Focus State: `2px solid #2C84DB` outline, `4px` offset
 
-**Secondary Button (Tertiary CTA)**
-- Background: `#FAF9F5`
-- Text Color: `#141413`
-- Padding: `8px 16px`
+**Secondary Button (Default CTA)**
+- Background: `#D97757` (Terracotta)
+- Text Color: `#FFFFFF`
+- Padding: `12px 24px`
 - Font: Anthropic Sans, `15px`, weight 400, line height `24px`
-- Border Radius: `8px`
-- Border: `1px solid #E8E6DC`
+- Border Radius: `12px`
+- Border: None
 - Box Shadow: None
-- Hover State: Background `#E8E6DC`, border `1px solid #5E5D59`
-- Active State: Background `#E3DACC`
-- Focus State: `2px solid #2C84DB` outline
+- Hover State: Background `#C46849` (Warm Rust), text `#FFFFFF`
+- Active State: Background `#D97757`, text `#FFFFFF`
+- Focus State: `2px solid #2C84DB` outline, `4px` offset
 
 **Ghost Button (Text Link Button)**
 - Background: Transparent
