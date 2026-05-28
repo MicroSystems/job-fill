@@ -9,6 +9,16 @@ export function ProfileForm({ profileName: initialName }: { profileName?: string
   const [resumeFilename, setResumeFilename] = React.useState("");
   const [skillsText, setSkillsText] = React.useState("");
   const [loading, setLoading] = React.useState(true);
+  const [collapsed, setCollapsed] = React.useState<Record<string, boolean>>({
+    compensation: true,
+    currentLocation: true,
+    pronouns: true,
+    currentCompany: true,
+    noticePeriod: true,
+    demographics: true,
+  });
+
+  const toggle = (key: string) => setCollapsed((c) => ({ ...c, [key]: !c[key] }));
 
   React.useEffect(() => {
     (async () => {
@@ -92,25 +102,31 @@ export function ProfileForm({ profileName: initialName }: { profileName?: string
       <section>
         <h2>Contact</h2>
         <div className="field-row">
-          <label>
+          <label className="wide">
             First Name
             <input value={profile.name.given} onChange={(e) => update("name.given", e.target.value)} />
           </label>
-          <label>
+        </div>
+        <div className="field-row">
+          <label className="wide">
             Middle Name
             <input value={profile.name.middle ?? ""} onChange={(e) => update("name.middle", e.target.value)} />
           </label>
-          <label>
+        </div>
+        <div className="field-row">
+          <label className="wide">
             Last Name
             <input value={profile.name.family} onChange={(e) => update("name.family", e.target.value)} />
           </label>
         </div>
         <div className="field-row">
-          <label>
+          <label className="wide">
             Email
             <input type="email" value={profile.email} onChange={(e) => update("email", e.target.value)} />
           </label>
-          <label>
+        </div>
+        <div className="field-row">
+          <label className="wide">
             Phone
             <input value={profile.phone.national} onChange={(e) => update("phone.national", e.target.value)} />
           </label>
@@ -208,7 +224,11 @@ export function ProfileForm({ profileName: initialName }: { profileName?: string
       </section>
 
       <section>
-        <h2>Compensation</h2>
+        <h2 onClick={() => toggle("compensation")}>
+          <span className={`arrow${!collapsed.compensation ? " open" : ""}`}>▸</span>
+          Compensation
+        </h2>
+        {!collapsed.compensation && (
         <div className="field-row">
           <label className="wide">
             Desired Compensation (e.g. "$120,000" or "Negotiable")
@@ -219,10 +239,15 @@ export function ProfileForm({ profileName: initialName }: { profileName?: string
             />
           </label>
         </div>
+        )}
       </section>
 
       <section>
-        <h2>Current Location</h2>
+        <h2 onClick={() => toggle("currentLocation")}>
+          <span className={`arrow${!collapsed.currentLocation ? " open" : ""}`}>▸</span>
+          Current Location
+        </h2>
+        {!collapsed.currentLocation && (
         <div className="field-row">
           <label className="wide">
             Where are you currently located?
@@ -233,10 +258,15 @@ export function ProfileForm({ profileName: initialName }: { profileName?: string
             />
           </label>
         </div>
+        )}
       </section>
 
       <section>
-        <h2>Pronouns</h2>
+        <h2 onClick={() => toggle("pronouns")}>
+          <span className={`arrow${!collapsed.pronouns ? " open" : ""}`}>▸</span>
+          Pronouns
+        </h2>
+        {!collapsed.pronouns && (
         <div className="field-row">
           <label className="wide">
             Your pronouns
@@ -247,10 +277,15 @@ export function ProfileForm({ profileName: initialName }: { profileName?: string
             />
           </label>
         </div>
+        )}
       </section>
 
       <section>
-        <h2>Current Company</h2>
+        <h2 onClick={() => toggle("currentCompany")}>
+          <span className={`arrow${!collapsed.currentCompany ? " open" : ""}`}>▸</span>
+          Current Company
+        </h2>
+        {!collapsed.currentCompany && (
         <div className="field-row">
           <label className="wide">
             Your current or most recent employer
@@ -261,10 +296,15 @@ export function ProfileForm({ profileName: initialName }: { profileName?: string
             />
           </label>
         </div>
+        )}
       </section>
 
       <section>
-        <h2>Notice Period</h2>
+        <h2 onClick={() => toggle("noticePeriod")}>
+          <span className={`arrow${!collapsed.noticePeriod ? " open" : ""}`}>▸</span>
+          Notice Period
+        </h2>
+        {!collapsed.noticePeriod && (
         <div className="field-row">
           <label className="wide">
             What is your notice period?
@@ -275,6 +315,7 @@ export function ProfileForm({ profileName: initialName }: { profileName?: string
             />
           </label>
         </div>
+        )}
       </section>
 
       <section>
@@ -376,7 +417,12 @@ export function ProfileForm({ profileName: initialName }: { profileName?: string
       </section>
 
       <section>
-        <h2>Demographics (optional)</h2>
+        <h2 onClick={() => toggle("demographics")}>
+          <span className={`arrow${!collapsed.demographics ? " open" : ""}`}>▸</span>
+          Demographics (optional)
+        </h2>
+        {!collapsed.demographics && (
+        <>
         <p className="hint" style={{ textAlign: "left", marginBottom: 8 }}>
           Used for EEO questions on job applications.
         </p>
@@ -429,6 +475,8 @@ export function ProfileForm({ profileName: initialName }: { profileName?: string
             </select>
           </label>
         </div>
+        </>
+        )}
       </section>
 
       <button className="btn btn-primary save-btn" onClick={handleSave}>

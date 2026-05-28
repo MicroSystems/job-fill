@@ -291,6 +291,8 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
+  user-select: none;
 }
 
 .profile-form h2::after {
@@ -298,6 +300,17 @@ body {
   flex: 1;
   height: 1px;
   background: var(--border);
+}
+
+.profile-form h2 .arrow {
+  font-size: 16px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.profile-form h2 .arrow.open {
+  transform: rotate(90deg);
 }
 
 .field-row {
@@ -314,7 +327,7 @@ body {
 .field-row label {
   flex: 1;
   min-width: 80px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
   color: var(--text-muted);
   display: flex;
@@ -332,7 +345,7 @@ textarea {
   padding: 7px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: 14px;
   width: 100%;
   background: var(--bg-input);
   color: var(--text);
@@ -459,8 +472,8 @@ textarea {
 .btn-small {
   background: var(--bg-hover);
   color: var(--text-secondary);
-  font-size: 12px;
-  padding: 5px 12px;
+  font-size: 13px;
+  padding: 8px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-weight: 400;
