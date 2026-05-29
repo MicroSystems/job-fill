@@ -2,6 +2,7 @@ export interface Name {
   given: string;
   family: string;
   middle?: string;
+  preferredName?: string;
 }
 
 export interface Address {

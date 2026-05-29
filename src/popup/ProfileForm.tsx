@@ -115,6 +115,12 @@ export function ProfileForm({ profileName: initialName }: { profileName?: string
         </div>
         <div className="field-row">
           <label className="wide">
+            Preferred Name
+            <input value={profile.name.preferredName ?? ""} onChange={(e) => update("name.preferredName", e.target.value)} placeholder="e.g. Nickname you go by" />
+          </label>
+        </div>
+        <div className="field-row">
+          <label className="wide">
             Last Name
             <input value={profile.name.family} onChange={(e) => update("name.family", e.target.value)} />
           </label>

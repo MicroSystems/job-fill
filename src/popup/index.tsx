@@ -250,7 +250,7 @@ function App() {
       </header>
 
       <div className="popup-body">
-        {tab === "action" && <ActionPanel />}
+        {tab === "action" && <ActionPanel disabled={profileNames.length === 0} />}
         {tab === "history" && <HistoryPanel />}
       </div>
 
@@ -292,7 +292,7 @@ function App() {
   );
 }
 
-function ActionPanel() {
+function ActionPanel({ disabled }: { disabled: boolean }) {
   const [status, setStatus] = React.useState<string>("");
   const [result, setResult] = React.useState<string>("");
 
@@ -341,7 +341,7 @@ function ActionPanel() {
 
   return (
     <div className="action-panel">
-      <button className="btn btn-secondary" onClick={() => handleAction("autofill")}>
+      <button className="btn btn-secondary" disabled={disabled} onClick={() => handleAction("autofill")}>
         Auto-Fill This Page
       </button>
 

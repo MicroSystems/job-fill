@@ -55,6 +55,29 @@ export const ashbyDriver: FillDriver = {
             }
         }
 
+        // ── Preferred Name ──
+        const prefName = profileRaw.name?.preferredName;
+        const fillPref = (val: string) => {
+            const labels = document.querySelectorAll<HTMLLabelElement>("label");
+            for (const lab of labels) {
+                if (!lab.textContent || !/preferred.?name/i.test(lab.textContent.trim())) continue;
+                const id = lab.getAttribute("for");
+                if (!id) continue;
+                const el = document.getElementById(id) as HTMLInputElement | null;
+                if (!el || el.type === "file" || el.disabled) continue;
+                const setter = Object.getOwnPropertyDescriptor(
+                    Object.getPrototypeOf(el), "value"
+                )?.set;
+                if (setter) setter.call(el, val);
+                else el.value = val;
+                el.dispatchEvent(new Event("input", { bubbles: true }));
+                el.dispatchEvent(new Event("change", { bubbles: true }));
+                result.filled++;
+                return;
+            }
+        };
+        if (prefName) fillPref(prefName);
+
         // ── Yes/No button groups (Ashby uses hidden checkbox + visible buttons) ──
         const yesNoFields = YESNO_PATTERNS;
         const yesNoGroups = form.querySelectorAll<HTMLElement>('[class*="_yesno_"]');

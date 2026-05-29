@@ -31,6 +31,10 @@ export const FIELD_MAPPINGS: FieldMapping[] = [
     labelPatterns: [/last.?name/i, /family.?name/i, /surname/i, /lname/i],
     profileKey: "name.family",
   },
+  {
+    labelPatterns: [/preferred.?name/i, /preferred.?first.?name/i, /name.*go.*by/i, /nickname/i],
+    profileKey: "name.preferredName",
+  },
   // Contact
   { labelPatterns: [/email/i, /e[-\s]?mail/i], profileKey: "email" },
   { labelPatterns: [/phone/i, /mobile/i, /telephone/i, /cell/i, /contact.?number/i], profileKey: "phone.national" },

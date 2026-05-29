@@ -485,6 +485,11 @@ textarea {
   background: var(--accent-light);
 }
 
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .save-btn {
   margin: 8px 0 16px;
 }
